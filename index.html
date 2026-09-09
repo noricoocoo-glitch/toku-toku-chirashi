@@ -2,8 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>トク得チラシ - 実在スーパー＆本物チラシ集約ポータル</title>
+    <!-- アイコン（画像ファイルを別途用意しなくて良いよう、絵文字を使ったシンプルなアイコンを直接埋め込み） -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2316a34a%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>🛒</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2316a34a%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>🛒</text></svg>">
+    <meta name="theme-color" content="#16a34a">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts (Noto Sans JP) -->
@@ -201,11 +205,16 @@
                             <i class="fa-solid fa-newspaper text-brand-600"></i>
                             周辺のチラシ一覧（Shufoo!）
                         </h3>
-                        <button onclick="goBackInShufooEmbed()" class="text-[11px] text-gray-600 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-full font-bold transition">
-                            <i class="fa-solid fa-arrow-left mr-1"></i>前の画面に戻る
-                        </button>
+                        <div class="flex items-center gap-1.5">
+                            <a id="shufoo-embed-newtab-link" href="#" target="_blank" rel="noopener" class="text-[11px] text-white bg-orange-500 hover:bg-orange-600 px-2.5 py-1 rounded-full font-bold transition">
+                                <i class="fa-solid fa-up-right-from-square mr-1"></i>拡大して見る
+                            </a>
+                            <button onclick="goBackInShufooEmbed()" class="text-[11px] text-gray-600 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-full font-bold transition">
+                                <i class="fa-solid fa-arrow-left mr-1"></i>前の画面に戻る
+                            </button>
+                        </div>
                     </div>
-                    <p class="text-[10px] text-gray-400 mb-2">上の地図の「この地図の場所でチラシを探す」で見つけたShufoo!のチラシ一覧を、ここにいつでも表示しています。枠の中でスクロールして見られます。</p>
+                    <p class="text-[10px] text-gray-400 mb-2">上の地図の「この地図の場所でチラシを探す」で見つけたShufoo!のチラシ一覧を、ここにいつでも表示しています。枠の中の指ズームが効きにくい場合は「拡大して見る」から新しいタブで開いてください。</p>
 
                     <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50" style="isolation: isolate;">
                         <iframe id="shufoo-embed-frame" title="周辺のチラシ一覧" class="w-full" style="height: 420px; border: none; display: block;" loading="lazy"></iframe>
@@ -260,10 +269,13 @@
             <section id="view-flyers" class="p-4 space-y-4 hidden">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h2 class="font-bold text-gray-800 text-base">本物のWEBチラシを探す</h2>
-                        <p class="text-xs text-gray-500">お店ごとに、トクバイ・Shufoo!などの本物チラシを検索します</p>
+                        <h2 class="font-bold text-gray-800 text-base">WEBチラシを探す</h2>
+                        <p class="text-xs text-gray-500">お店ごとに、トクバイ・Shufoo!などのチラシを検索します</p>
                     </div>
-                    <span class="text-xs bg-brand-100 text-brand-800 font-bold px-2.5 py-1 rounded-full" id="flyer-store-tag">店舗選択</span>
+                    <select id="flyer-category-select" onchange="switchFlyerCategory(this.value)"
+                        class="text-xs bg-brand-100 text-brand-800 font-bold pl-2.5 pr-1.5 py-1.5 rounded-full border-none focus:outline-none focus:ring-2 focus:ring-brand-400">
+                        <!-- Dynamic category options -->
+                    </select>
                 </div>
 
                 <!-- Store Selector Chips -->
@@ -597,6 +609,7 @@
         const SHOP_CATEGORY_MAP = {
             supermarket: { label: 'スーパー', icon: 'fa-cart-shopping' },
             convenience: { label: 'コンビニ', icon: 'fa-store' },
+            drugstore: { label: 'ドラッグストア', icon: 'fa-pills' },
             greengrocer: { label: '青果店', icon: 'fa-carrot' },
             butcher: { label: '精肉店', icon: 'fa-drumstick-bite' },
             seafood: { label: '鮮魚店', icon: 'fa-fish' },
@@ -606,12 +619,22 @@
             marketplace: { label: '商店街・マーケット', icon: 'fa-people-group' }
         };
 
+        // 「WEBチラシを探す」タブでカテゴリ切り替えができる対象と、Nominatim検索用のOSMタグ
+        const FLYER_CATEGORY_TAG = {
+            drugstore: 'shop=chemist',
+            supermarket: 'shop=supermarket',
+            convenience: 'shop=convenience'
+        };
+        let activeFlyerCategory = 'drugstore'; // デフォルトはドラッグストア
+        let flyerCategoryStores = {}; // カテゴリごとの検索結果キャッシュ（エリアが変わったらリセットする）
+
         window.addEventListener('DOMContentLoaded', () => {
             resolveAreaByAddressText(currentLocation);
             loadPriceMemo();
             resetPriceMemoDateToToday();
             renderPriceMemo();
             loadTextSizePref();
+            renderFlyerCategoryOptions();
         });
 
         function escapeHtml(str) {
@@ -665,6 +688,7 @@
             lastLocalShopsFetchFailed = false;
             allStoresData = [];
             marketsData = [];
+            flyerCategoryStores = {}; // エリアが変わったので、WEBチラシタブのカテゴリ別キャッシュも作り直す
             renderAutoListLoadingState();
 
             // まず「スーパー」を、ずっと安定して動いているNominatimで検索して表示する
@@ -672,9 +696,9 @@
             try {
                 const results = await queryNominatimCategory('shop=supermarket', lat, lon, 0.03, 30);
                 allStoresData = parseNominatimResults(results, lat, lon, SHOP_CATEGORY_MAP.supermarket, 'supermarket');
-                activeFlyerStoreId = allStoresData[0]?.id || "";
 
                 renderAllViews();
+                ensureFlyerCategoryLoaded(activeFlyerCategory);
 
                 if (allStoresData.length === 0) {
                     showToast(`「${currentLocation}」周辺では、地図データに登録されているスーパーが見つかりませんでした`, "fa-circle-exclamation");
@@ -1093,7 +1117,10 @@
             const frame = document.getElementById('shufoo-embed-frame');
             if (!frame) return;
             lastShufooEmbedCoords = { lat, lon };
-            frame.src = buildShufooChirashiUrl(lat, lon);
+            const url = buildShufooChirashiUrl(lat, lon);
+            frame.src = url;
+            const newTabLink = document.getElementById('shufoo-embed-newtab-link');
+            if (newTabLink) newTabLink.href = url;
         }
 
         function refreshShufooEmbed() {
@@ -1172,13 +1199,68 @@
             if (countElem) countElem.innerText = `${marketsData.length}件見つかりました`;
         }
 
+        function renderFlyerCategoryOptions() {
+            const select = document.getElementById('flyer-category-select');
+            if (!select) return;
+
+            select.innerHTML = Object.keys(FLYER_CATEGORY_TAG).map(key => `
+                <option value="${key}" ${key === activeFlyerCategory ? 'selected' : ''}>${SHOP_CATEGORY_MAP[key].label}</option>
+            `).join('');
+        }
+
+        function switchFlyerCategory(categoryKey) {
+            activeFlyerCategory = categoryKey;
+            activeFlyerStoreId = "";
+            ensureFlyerCategoryLoaded(categoryKey);
+        }
+
+        async function ensureFlyerCategoryLoaded(categoryKey) {
+            renderFlyerCategoryOptions();
+
+            if (flyerCategoryStores[categoryKey]) {
+                renderFlyerStoreSelector();
+                renderFlyerDetail();
+                return;
+            }
+
+            const coords = currentLocationCoords || mapCenterCoords;
+            const container = document.getElementById('flyer-store-selector');
+            if (!coords) {
+                if (container) container.innerHTML = `<p class="text-[11px] text-gray-400 py-2">先にエリアを検索してください</p>`;
+                return;
+            }
+
+            if (container) container.innerHTML = `<p class="text-[11px] text-gray-400 py-2"><i class="fa-solid fa-spinner fa-spin"></i> ${SHOP_CATEGORY_MAP[categoryKey].label}を探しています…</p>`;
+
+            try {
+                const results = await queryNominatimCategory(FLYER_CATEGORY_TAG[categoryKey], coords.lat, coords.lon, 0.03, 30);
+                flyerCategoryStores[categoryKey] = parseNominatimResults(results, coords.lat, coords.lon, SHOP_CATEGORY_MAP[categoryKey], categoryKey);
+            } catch (e) {
+                flyerCategoryStores[categoryKey] = [];
+            }
+
+            if (categoryKey === activeFlyerCategory) {
+                renderFlyerStoreSelector();
+                renderFlyerDetail();
+            }
+        }
+
         function renderFlyerStoreSelector() {
             const container = document.getElementById('flyer-store-selector');
             if (!container) return;
 
-            if (!activeFlyerStoreId && allStoresData[0]) activeFlyerStoreId = allStoresData[0].id;
+            const stores = flyerCategoryStores[activeFlyerCategory] || [];
 
-            container.innerHTML = allStoresData.map(store => `
+            if (!activeFlyerStoreId || !stores.some(s => s.id === activeFlyerStoreId)) {
+                activeFlyerStoreId = stores[0]?.id || "";
+            }
+
+            if (stores.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-gray-400 py-2">このエリアには「${SHOP_CATEGORY_MAP[activeFlyerCategory].label}」の登録が見つかりませんでした</p>`;
+                return;
+            }
+
+            container.innerHTML = stores.map(store => `
                 <button onclick="selectStoreFlyer('${store.id}')"
                     class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${activeFlyerStoreId === store.id ? 'bg-brand-600 text-white shadow' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}">
                     ${escapeHtml(store.name)}
@@ -1194,16 +1276,15 @@
         }
 
         function renderFlyerDetail() {
-            const target = allStoresData.find(s => s.id === activeFlyerStoreId) || allStoresData[0];
+            const stores = flyerCategoryStores[activeFlyerCategory] || [];
+            const target = stores.find(s => s.id === activeFlyerStoreId) || stores[0];
 
-            const flyerStoreTag = document.getElementById('flyer-store-tag');
             const titleElem = document.getElementById('current-flyer-store-title');
             const infoElem = document.getElementById('flyer-store-info');
             const linkBtns = document.getElementById('real-flyer-link-buttons');
 
             if (!target) {
-                if (flyerStoreTag) flyerStoreTag.innerText = '店舗未選択';
-                if (titleElem) titleElem.innerText = '自動一覧には店舗がありません';
+                if (titleElem) titleElem.innerText = `${SHOP_CATEGORY_MAP[activeFlyerCategory].label}が見つかりません`;
                 if (infoElem) infoElem.innerHTML = `<p class="font-bold text-yellow-400"><i class="fa-solid fa-circle-info mr-1"></i>お店の情報:</p><p>自動での一覧取得ができていません。ホーム画面の地図でお店の名前を確認し、入力して検索してください。</p>`;
                 if (linkBtns) {
                     linkBtns.innerHTML = `
@@ -1214,7 +1295,6 @@
                 return;
             }
 
-            if (flyerStoreTag) flyerStoreTag.innerText = target.categoryLabel;
             if (titleElem) titleElem.innerText = target.name;
             if (infoElem) {
                 infoElem.innerHTML = `
