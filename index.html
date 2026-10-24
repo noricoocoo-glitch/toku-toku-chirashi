@@ -2,1737 +2,1201 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>トク得チラシ - 実在スーパー＆本物チラシ集約ポータル</title>
-    <!-- アイコン（画像ファイルを別途用意しなくて良いよう、絵文字を使ったシンプルなアイコンを直接埋め込み） -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2316a34a%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>🛒</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2316a34a%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>🛒</text></svg>">
-    <meta name="theme-color" content="#16a34a">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts (Noto Sans JP) -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Leaflet (実際の地図を表示するための地図ライブラリ。鍵登録不要) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>トク得チラシ</title>
+    <!-- ホーム画面用アイコン：緑の背景に買い物かごの絵（絵文字は使わない）。iPhone用の画像は起動時に作って差し替える -->
+    <link id="app-icon-svg" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B6B3A'/%3E%3Cg transform='translate(14 14) scale(3)' fill='none' stroke='%23FFFFFF' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9h16l-1.6 9a2 2 0 0 1-2 1.6H7.6a2 2 0 0 1-2-1.6L4 9z'/%3E%3Cpath d='M8 9l3-5M16 9l-3-5'/%3E%3C/g%3E%3C/svg%3E">
+    <link id="app-icon-apple" rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230B6B3A'/%3E%3Cg transform='translate(14 14) scale(3)' fill='none' stroke='%23FFFFFF' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9h16l-1.6 9a2 2 0 0 1-2 1.6H7.6a2 2 0 0 1-2-1.6L4 9z'/%3E%3Cpath d='M8 9l3-5M16 9l-3-5'/%3E%3C/g%3E%3C/svg%3E">
+    <meta name="theme-color" content="#0B6B3A">
+    <meta name="apple-mobile-web-app-title" content="トク得チラシ">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Leaflet（実際の地図を表示するための地図ライブラリ。鍵登録不要） -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                        },
-                        sale: {
-                            500: '#ef4444',
-                            600: '#dc2626',
-                        },
-                        line: {
-                            500: '#06C755',
-                            600: '#05b34c',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Noto Sans JP', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .tab-active { color: #16a34a; font-weight: 700; border-top: 3px solid #16a34a; }
-        .badge-sale { background: linear-gradient(135deg, #ef4444 0%, #f97316 100%); }
-        .pulse-subtle { animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulseSubtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        /* 地図の部品（ズームボタン・吹き出し等）が、ヘッダーやモーダルより上に飛び出さないよう、この枠の中に閉じ込める */
-        #leaflet-map { isolation: isolate; }
-        /* 携帯でボタンが隣接していても「押した」とすぐ分かるように、共通のタップ反応をつける */
-        button, a {
-            -webkit-tap-highlight-color: rgba(22, 163, 74, 0.25);
-            touch-action: manipulation;
-        }
-        button:active, a:active {
-            transform: scale(0.94);
-            opacity: 0.85;
-            transition: transform 0.08s ease-out, opacity 0.08s ease-out;
-        }
-        /* 「文字を大きく表示」オンの時に、画面内の細かい文字サイズをまとめて拡大する（老眼などで読みにくい場合向け） */
-        body.large-text .text-\[9px\]  { font-size: 12px !important; line-height: 1.4 !important; }
-        body.large-text .text-\[10px\] { font-size: 13px !important; line-height: 1.4 !important; }
-        body.large-text .text-\[11px\] { font-size: 14px !important; line-height: 1.4 !important; }
-        body.large-text .text-xs      { font-size: 15px !important; line-height: 1.5 !important; }
-        body.large-text .text-sm      { font-size: 17px !important; line-height: 1.5 !important; }
-        body.large-text .text-base    { font-size: 19px !important; line-height: 1.5 !important; }
+        /* 文字の大きさは rem で書き、「文字を大きく表示」で html の大きさを変えると画面全体が一度に変わる */
+        html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+        html.large { font-size: 20px; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #DDE3DA; color: #17261E; font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; line-height: 1.5; }
+        a { color: inherit; text-decoration: none; }
+        button, input { font-family: inherit; }
+        button { cursor: pointer; }
+        a, button { -webkit-tap-highlight-color: rgba(11, 107, 58, 0.2); touch-action: manipulation; }
+        a:active, button:active { opacity: 0.8; }
+        :focus-visible { outline: 3px solid #FFC93C; outline-offset: 2px; }
+        .ic { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+        #app { --nav: 64px; position: relative; width: 100%; max-width: 480px; height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; background: #F3F5F1; }
+        html.large #app { --nav: 76px; }
+
+        .screen { position: absolute; left: 0; right: 0; top: 0; bottom: var(--nav); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .screen[hidden] { display: none; }
+        .col { display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 24px; }
+
+        /* 下の切り替え */
+        #nav { position: absolute; left: 0; right: 0; bottom: 0; height: var(--nav); display: flex; background: #fff; border-top: 1px solid #DCE3DB; z-index: 600; }
+        #nav a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #55655B; font-size: .8125rem; font-weight: 500; }
+        #nav a[aria-current="page"] { color: #0B6B3A; font-weight: 800; }
+        #nav a[aria-current="page"] .ic { stroke-width: 2.4; }
+
+        /* 共通の部品 */
+        .area-btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 12px; border-radius: 22px; background: #fff; border: 1px solid #D9E0D8; font-size: .9375rem; font-weight: 700; color: #17261E; max-width: 190px; }
+        .area-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .searchbox { display: flex; align-items: center; gap: 8px; min-height: 54px; padding: 0 7px 0 14px; border-radius: 16px; background: #fff; border: 1px solid #D9E0D8; }
+        .searchbox input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 1rem; color: #17261E; min-height: 44px; }
+        .searchbox button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #0B6B3A; color: #fff; font-size: .9375rem; font-weight: 700; }
+        .seg { display: flex; gap: 2px; padding: 3px; border-radius: 14px; background: #E3E9E2; }
+        .seg a, .seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 11px; background: transparent; color: #4B5B52; font-size: .875rem; font-weight: 700; }
+        .seg [aria-current="true"] { background: #fff; color: #17261E; font-weight: 800; box-shadow: 0 1px 2px rgba(23, 38, 30, .14); }
+
+        .hero { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 22px; background: #0B6B3A; color: #fff; overflow: hidden; }
+        .hero-text { display: flex; flex-direction: column; gap: 4px; max-width: 230px; position: relative; z-index: 1; }
+        .hero-title { font-size: 1.1875rem; font-weight: 800; line-height: 1.35; }
+        .hero-sub { font-size: .8125rem; color: #D3EBDB; }
+        .hero-btn { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 8px; width: 210px; max-width: 100%; min-height: 48px; border-radius: 14px; background: #FFC93C; color: #17261E; font-size: 1rem; font-weight: 800; }
+        .hero svg.deco { position: absolute; right: 8px; top: 14px; }
+
+        .chips { display: flex; gap: 8px; margin: 0 -16px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+        .chips::-webkit-scrollbar { display: none; }
+        .chip { flex: none; min-height: 44px; padding: 0 18px; border-radius: 22px; border: 1px solid #D9E0D8; background: #fff; color: #17261E; font-size: .9375rem; font-weight: 500; }
+        .chip[aria-pressed="true"] { border-color: #0B6B3A; background: #0B6B3A; color: #fff; font-weight: 700; }
+
+        .card { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 18px; background: #fff; border: 1px solid #E1E7E0; }
+        .card-head { display: flex; align-items: center; gap: 12px; }
+        .badge-ic { flex: none; width: 46px; height: 46px; border-radius: 14px; background: #E3F1E8; color: #0B6B3A; display: flex; align-items: center; justify-content: center; }
+        .card-name { font-size: 1.0625rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
+        .card-meta { font-size: .8125rem; color: #55655B; }
+        .card-actions { display: flex; gap: 8px; }
+        .btn-main { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; border: 0; border-radius: 13px; background: #0B6B3A; color: #fff; font-size: 1rem; font-weight: 800; }
+        .btn-map { flex: none; width: 46px; min-height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 13px; background: #fff; border: 1px solid #C9D3C8; color: #0B6B3A; }
+
+        .note { padding: 18px 16px; border-radius: 18px; background: #fff; border: 1px solid #E1E7E0; text-align: center; font-size: .9375rem; color: #55655B; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .note .btn-outline { min-height: 46px; padding: 0 18px; border-radius: 13px; border: 1px solid #C9D3C8; background: #fff; color: #0B6B3A; font-size: .9375rem; font-weight: 700; }
+        .spinner { width: 28px; height: 28px; border: 3px solid #D9E0D8; border-top-color: #0B6B3A; border-radius: 50%; animation: spin .9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 地図の画面 */
+        #search-map { position: absolute; inset: 0; }
+        #map { position: absolute; inset: 0; z-index: 0; isolation: isolate; background: #E9EEE5; }
+        #map-top { position: absolute; left: 16px; right: 16px; top: 16px; z-index: 500; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        #map-top > * { pointer-events: auto; }
+        #map-top .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        #map-top .area-btn, #map-top .seg, #map-top .searchbox { border: 0; box-shadow: 0 2px 8px rgba(23, 38, 30, .16); }
+        #map-top .seg { background: #fff; }
+        #map-top .seg [aria-current="true"] { background: #0B6B3A; color: #fff; box-shadow: none; }
+        #map-top .searchbox { min-height: 52px; }
+        .pin { background: none; border: 0; }
+
+        /* 下から出る画面 */
+        .backdrop { position: absolute; inset: 0; background: rgba(23, 38, 30, .58); z-index: 700; opacity: 0; pointer-events: none; transition: opacity .2s; }
+        .backdrop.show { opacity: 1; pointer-events: auto; }
+        #sheet-backdrop { background: rgba(23, 38, 30, .38); z-index: 550; }
+        #sheet-backdrop.nodim { background: transparent; pointer-events: none; }
+        .sheet { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 18px; background: #fff; border-radius: 24px 24px 0 0; transform: translateY(110%); visibility: hidden; transition: transform .25s ease, visibility 0s .25s; overflow-y: auto; }
+        .sheet.show { transform: none; visibility: visible; transition: transform .25s ease; }
+        #store-sheet { bottom: var(--nav); z-index: 580; max-height: calc(100% - var(--nav) - 24px); box-shadow: 0 -4px 18px rgba(23, 38, 30, .16); }
+        #area-sheet { bottom: 0; z-index: 800; padding-bottom: 28px; max-height: 92%; }
+        .grab { align-self: stretch; display: flex; justify-content: center; align-items: center; min-height: 44px; margin: 0 -16px; border: 0; background: transparent; }
+        .grab i { display: block; width: 40px; height: 5px; border-radius: 3px; background: #CBD4CA; }
+        .big-links { display: flex; gap: 10px; }
+        .big-links a { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; border-radius: 15px; background: #0B6B3A; color: #fff; font-size: 1.0625rem; font-weight: 800; }
+        .small-links { display: flex; gap: 10px; }
+        .small-links a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 13px; border: 1px solid #C9D3C8; color: #0B6B3A; font-size: .9375rem; font-weight: 700; text-align: center; }
+        .sheet-label { font-size: .875rem; font-weight: 700; color: #55655B; }
+
+        .area-btn-big { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; border: 0; border-radius: 16px; background: #0B6B3A; color: #fff; font-size: 1.125rem; font-weight: 800; }
+        .or { display: flex; align-items: center; gap: 12px; font-size: .8125rem; font-weight: 700; color: #55655B; }
+        .or i { flex: 1; height: 1px; background: #DCE3DB; }
+        .field-input { min-height: 54px; padding: 0 16px; border-radius: 16px; border: 1px solid #C9D3C8; background: #F8FAF7; outline: 0; font-size: 1rem; color: #17261E; width: 100%; }
+        .btn-outline-big { min-height: 54px; border-radius: 16px; border: 2px solid #0B6B3A; background: #fff; color: #0B6B3A; font-size: 1.0625rem; font-weight: 800; }
+        .close-x { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 22px; background: #EEF2ED; color: #17261E; }
+
+        /* 買い物メモ */
+        .page-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+        .page-head h1 { margin: 0; font-size: 1.5rem; font-weight: 800; }
+        .line-btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 22px; background: #06C755; color: #0E1F16; font-size: .9375rem; font-weight: 800; text-align: left; line-height: 1.3; }
+        .seg-wide { display: flex; gap: 2px; padding: 3px; border-radius: 16px; background: #E3E9E2; }
+        .seg-wide button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; border: 0; border-radius: 13px; background: transparent; color: #4B5B52; font-size: 1rem; font-weight: 700; }
+        .seg-wide button[aria-pressed="true"] { background: #fff; color: #17261E; font-weight: 800; box-shadow: 0 1px 2px rgba(23, 38, 30, .14); }
+        .count-badge { min-width: 24px; height: 24px; padding: 0 6px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: #0B6B3A; color: #fff; font-size: .8125rem; font-weight: 800; }
+        .add-row { display: flex; align-items: center; gap: 8px; }
+        .add-row input { flex: 1; min-width: 0; min-height: 52px; padding: 0 14px; border-radius: 16px; border: 1px solid #D9E0D8; background: #fff; outline: 0; font-size: 1rem; color: #17261E; }
+        .add-row button { flex: none; display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 52px; padding: 0 18px; border: 0; border-radius: 16px; background: #0B6B3A; color: #fff; font-size: 1rem; font-weight: 800; }
+        .memo-list { list-style: none; margin: 0; padding: 4px 16px; display: flex; flex-direction: column; border-radius: 18px; background: #fff; border: 1px solid #E1E7E0; }
+        .memo-list li { border-bottom: 1px solid #EDF1EC; }
+        .memo-list li:last-child { border-bottom: 0; }
+        .memo-list label { display: flex; align-items: center; gap: 14px; min-height: 58px; cursor: pointer; }
+        .memo-list input { flex: none; width: 26px; height: 26px; margin: 0; accent-color: #0B6B3A; }
+        .memo-list .t { font-size: 1.0625rem; font-weight: 700; overflow-wrap: anywhere; }
+        .memo-list .done { color: #7A8A80; text-decoration: line-through; font-weight: 400; }
+        .empty-line { padding: 16px 0; text-align: center; color: #55655B; font-size: .9375rem; }
+        .foot-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .foot-row .rest { font-size: .875rem; color: #55655B; }
+        .btn-clear { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #C9D3C8; background: #fff; color: #17261E; font-size: .875rem; font-weight: 700; }
+        .form-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 18px; background: #fff; border: 1px solid #E1E7E0; }
+        .f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .f label { font-size: .8125rem; font-weight: 700; color: #55655B; }
+        .f input { min-height: 48px; width: 100%; padding: 0 12px; border-radius: 13px; border: 1px solid #D9E0D8; background: #F8FAF7; outline: 0; font-size: 1rem; color: #17261E; }
+        .f-row { display: flex; gap: 10px; }
+        .btn-record { min-height: 50px; border: 0; border-radius: 14px; background: #0B6B3A; color: #fff; font-size: 1.0625rem; font-weight: 800; }
+        .price-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+        .price-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-radius: 16px; background: #fff; border: 1px solid #E1E7E0; }
+        .price-list .nm { font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
+        .price-list .sub { font-size: .8125rem; color: #55655B; overflow-wrap: anywhere; }
+        .price-list .right { display: flex; align-items: center; gap: 8px; flex: none; }
+        .cheap { padding: 2px 10px; border-radius: 10px; background: #FFE49A; color: #5A3E00; font-size: .8125rem; font-weight: 800; white-space: nowrap; }
+        .yen { font-size: 1.25rem; font-weight: 800; white-space: nowrap; }
+        .del-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 12px; background: transparent; color: #7A8A80; }
+
+        /* 設定 */
+        .group-title { margin: 0 4px; font-size: .875rem; font-weight: 700; color: #55655B; }
+        .section { display: flex; flex-direction: column; gap: 8px; }
+        .set-card { display: flex; flex-direction: column; border-radius: 18px; background: #fff; border: 1px solid #E1E7E0; }
+        .area-row { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 10px 16px; width: 100%; border-radius: 18px; background: #fff; border: 1px solid #E1E7E0; text-align: left; color: #17261E; }
+        .area-row .ico { flex: none; width: 44px; height: 44px; border-radius: 13px; background: #E3F1E8; color: #0B6B3A; display: flex; align-items: center; justify-content: center; }
+        .area-row .tx { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .area-row .tx small { font-size: .8125rem; color: #55655B; }
+        .area-row .tx b { font-size: 1.125rem; font-weight: 800; overflow-wrap: anywhere; }
+        .area-row .go { display: flex; align-items: center; gap: 2px; color: #0B6B3A; font-size: .9375rem; font-weight: 800; }
+        .switch-card { gap: 10px; padding: 14px 16px; }
+        .switch-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .switch-line .tx { display: flex; flex-direction: column; min-width: 0; }
+        .switch-line .tx b { font-size: 1.0625rem; font-weight: 800; }
+        .switch-line .tx small { font-size: .8125rem; color: #55655B; }
+        .switch { flex: none; position: relative; width: 60px; height: 44px; padding: 0; border: 0; border-radius: 22px; background: transparent; }
+        .switch::before { content: ""; position: absolute; left: 0; top: 4px; width: 60px; height: 36px; border-radius: 18px; background: #7E8F84; transition: background .15s; }
+        .switch[aria-checked="true"]::before { background: #0B6B3A; }
+        .switch i { position: absolute; top: 8px; left: 4px; width: 28px; height: 28px; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgba(23, 38, 30, .3); transition: left .15s; }
+        .switch[aria-checked="true"] i { left: 28px; }
+        .sample { margin: 0; padding: 10px 12px; border-radius: 12px; background: #F3F5F1; font-size: 1rem; font-weight: 500; }
+        html.large .sample { font-weight: 700; }
+        .share-list { padding: 0 16px; }
+        .share-list button { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 0; border: 0; border-bottom: 1px solid #EDF1EC; background: transparent; text-align: left; color: #17261E; font-size: 1rem; font-weight: 700; width: 100%; }
+        .share-list button:last-child { border-bottom: 0; }
+        .share-list .ico { flex: none; width: 36px; height: 36px; border-radius: 11px; background: #E3F1E8; color: #0B6B3A; display: flex; align-items: center; justify-content: center; }
+        .share-list .ico.line { background: #06C755; color: #0E1F16; }
+        .share-list .lab { flex: 1; }
+        .credit { margin: 0 4px; font-size: .8125rem; color: #55655B; }
+
+        /* 通知・読み込み中 */
+        #toast { position: absolute; left: 16px; right: 16px; top: 12px; z-index: 900; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-14px); transition: opacity .25s, transform .25s; }
+        #toast.show { opacity: 1; transform: none; }
+        #toast span { padding: 10px 18px; border-radius: 16px; background: #17261E; color: #fff; font-size: .875rem; font-weight: 500; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, .25); }
+        #loading { position: absolute; inset: 0; z-index: 950; background: rgba(255, 255, 255, .92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; text-align: center; }
+        #loading[hidden] { display: none; }
+        #loading b { font-size: 1.0625rem; }
+        #loading small { font-size: .875rem; color: #55655B; }
+        #loading .spinner { width: 48px; height: 48px; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen flex justify-center selection:bg-brand-100">
+<body>
 
-    <div id="app" class="w-full max-w-md bg-white min-h-screen flex flex-col shadow-2xl relative pb-20">
+<!-- 線の絵（絵文字は使わない） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+        <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></symbol>
+        <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol>
+        <symbol id="i-flyer" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h4"/></symbol>
+        <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 10 4.5 5h15L21 10c0 1.7-1.3 3-3 3s-3-1.3-3-3c0 1.7-1.3 3-3 3s-3-1.3-3-3c0 1.7-1.3 3-3 3s-3-1.3-3-3z"/><path d="M5 13v7h14v-7"/></symbol>
+        <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+        <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+        <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7h14v-7"/></symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></symbol>
+        <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-gps" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></symbol>
+        <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+        <symbol id="i-basket" viewBox="0 0 24 24"><path d="M4 9h16l-1.6 9a2 2 0 0 1-2 1.6H7.6a2 2 0 0 1-2-1.6L4 9z"/><path d="M8 9l3-5M16 9l-3-5"/></symbol>
+    </defs>
+</svg>
 
-        <!-- Header Section -->
-        <header class="bg-brand-600 text-white p-4 sticky top-0 z-30 shadow-md">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                    <div class="bg-white text-brand-600 w-8 h-8 rounded-full flex items-center justify-center font-black text-lg shadow">
-                        <i class="fa-solid font-bold fa-basket-shopping"></i>
+<div id="app">
+
+    <!-- ===== さがす ===== -->
+    <div id="screen-search">
+
+        <!-- リスト -->
+        <main id="search-list" class="screen" aria-label="さがす（リスト）">
+            <div class="col">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                        <div style="flex:none;width:38px;height:38px;border-radius:11px;background:#0B6B3A;display:flex;align-items:center;justify-content:center;color:#fff">
+                            <svg class="ic" width="22" height="22"><use href="#i-basket"/></svg>
+                        </div>
+                        <span style="font-size:1.25rem;font-weight:800">トク得チラシ</span>
                     </div>
-                    <div>
-                        <h1 class="text-lg font-bold tracking-tight leading-none">トク得チラシ</h1>
-                        <span class="text-[9px] text-brand-100 font-normal">地域密着！実在スーパー・本物チラシ検索ポータル</span>
+                    <button type="button" class="area-btn" data-act="open-area" id="area-btn-list">
+                        <svg class="ic" width="18" height="18" style="color:#0B6B3A"><use href="#i-pin"/></svg>
+                        <span class="area-label">江東区</span>
+                        <svg class="ic" width="16" height="16" style="color:#55655B"><use href="#i-down"/></svg>
+                    </button>
+                </div>
+
+                <form class="searchbox" id="form-list" role="search">
+                    <svg class="ic" width="20" height="20" style="color:#55655B"><use href="#i-search"/></svg>
+                    <input type="search" id="q-list" aria-label="お店の名前" placeholder="お店の名前で探す（例：ライフ）" enterkeyhint="search" autocomplete="off">
+                    <button type="submit">探す</button>
+                </form>
+
+                <section class="hero">
+                    <div class="hero-text">
+                        <span class="hero-title">このあたりのチラシを、まとめて見る</span>
+                        <span class="hero-sub" id="hero-sub">江東区のスーパーのチラシが、一覧で開きます</span>
+                    </div>
+                    <a id="hero-link" class="hero-btn" href="https://www.shufoo.net/" target="_blank" rel="noopener">
+                        <span>チラシ一覧を開く</span>
+                        <svg class="ic" width="18" height="18" style="stroke-width:2.4"><use href="#i-ext"/></svg>
+                    </a>
+                    <svg class="deco" width="104" height="104" viewBox="0 0 104 104" fill="none" aria-hidden="true">
+                        <rect x="30" y="10" width="58" height="76" rx="8" fill="#FFFFFF" fill-opacity="0.35" transform="rotate(10 59 48)"/>
+                        <rect x="20" y="14" width="58" height="76" rx="8" fill="#FFFFFF" fill-opacity="0.6" transform="rotate(-4 49 52)"/>
+                        <rect x="14" y="16" width="58" height="76" rx="8" fill="#FFFFFF"/>
+                        <rect x="24" y="28" width="30" height="6" rx="3" fill="#0B6B3A"/>
+                        <rect x="24" y="42" width="38" height="4" rx="2" fill="#B9D8C4"/>
+                        <rect x="24" y="52" width="34" height="4" rx="2" fill="#B9D8C4"/>
+                        <rect x="24" y="62" width="38" height="4" rx="2" fill="#B9D8C4"/>
+                        <circle cx="64" cy="76" r="15" fill="#FFC93C"/>
+                        <path d="M58 76h12M64 70v12" stroke="#17261E" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </section>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px">
+                    <h2 style="margin:0;font-size:1.1875rem;font-weight:800">近くのお店</h2>
+                    <div class="seg">
+                        <button type="button" aria-current="true" data-act="mode-list"><svg class="ic" width="16" height="16" style="stroke-width:2.4"><use href="#i-list"/></svg><span>リスト</span></button>
+                        <button type="button" data-act="mode-map"><svg class="ic" width="16" height="16" style="stroke-width:2.4"><use href="#i-map"/></svg><span>地図</span></button>
                     </div>
                 </div>
 
-                <!-- Location Switcher & Share App Buttons -->
-                <div class="flex items-center gap-1.5">
-                    <button onclick="openShareAppModal()" class="text-xs bg-brand-700 hover:bg-brand-800 px-2.5 py-1.5 rounded-full flex items-center gap-1 text-yellow-300 transition shadow-sm border border-brand-500 font-bold" title="アプリを友達に送る">
-                        <i class="fa-solid fa-share-nodes text-xs"></i>
-                        <span class="text-[11px]">送る</span>
-                    </button>
-                    <button onclick="openLocationModal()" class="text-xs bg-brand-700 hover:bg-brand-800 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-sm border border-brand-500">
-                        <i class="fa-solid fa-location-dot text-yellow-300"></i>
-                        <span id="current-location-text" class="font-bold truncate max-w-[80px]">東京都江東区</span>
-                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                    </button>
+                <div class="chips" id="chips" role="group" aria-label="お店の種類">
+                    <button type="button" class="chip" data-cat="supermarket" aria-pressed="true">スーパー</button>
+                    <button type="button" class="chip" data-cat="drugstore" aria-pressed="false">ドラッグストア</button>
+                    <button type="button" class="chip" data-cat="convenience" aria-pressed="false">コンビニ</button>
+                    <button type="button" class="chip" data-cat="marketplace" aria-pressed="false">商店街</button>
                 </div>
+
+                <div id="store-list" style="display:flex;flex-direction:column;gap:10px" aria-live="polite"></div>
             </div>
-
-        </header>
-
-        <!-- Toast Notification Container -->
-        <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform -translate-y-10 opacity-0 pointer-events-none">
-            <div class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs shadow-xl flex items-center gap-2 border border-gray-700">
-                <i id="toast-icon" class="fa-solid fa-circle-info text-brand-500"></i>
-                <span id="toast-msg">通知メッセージ</span>
-            </div>
-        </div>
-
-        <main class="flex-1 overflow-y-auto relative">
-
-            <!-- Global Loading Overlay -->
-            <div id="ai-loading-overlay" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center space-y-4">
-                <div class="w-16 h-16 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
-                <div class="space-y-1">
-                    <h3 class="font-bold text-gray-800 text-base" id="loading-title">周辺のお店を検索中...</h3>
-                    <p class="text-xs text-gray-500 max-w-xs" id="loading-sub">OpenStreetMapの地図データから実在のお店を探しています。</p>
-                </div>
-            </div>
-
-            <!-- TAB 1: HOME (実在スーパー & 周辺チラシサマリー) -->
-            <section id="view-home" class="p-4 space-y-4">
-
-                <!-- Area Search Banner -->
-                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
-                    <div class="relative z-10 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-yellow-400 text-gray-900 font-bold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">OpenStreetMap連携検索</span>
-                            </div>
-                            <button onclick="openShareAppModal()" class="bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 transition border border-white/30">
-                                <i class="fa-solid fa-paper-plane text-yellow-300"></i>
-                                <span>アプリを送る</span>
-                            </button>
-                        </div>
-                        <h2 class="text-base font-bold leading-snug">指定地域の実在スーパー・本物チラシを検索</h2>
-                        <p class="text-xs text-emerald-100">現在地や指定住所周辺にある実在のお店を、無料の地図データ（OpenStreetMap）から探します。</p>
-
-                        <div class="flex gap-2 pt-1">
-                            <button onclick="fetchRealStoresForCurrentLocation()" class="bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-black px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-rotate-right text-emerald-800"></i>
-                                <span>もう一度探す</span>
-                            </button>
-                            <button onclick="openLocationModal()" class="bg-white hover:bg-gray-100 text-emerald-800 text-xs font-bold px-3 py-2 rounded-xl shadow transition flex items-center gap-1">
-                                <i class="fa-solid fa-location-dot text-orange-500"></i>
-                                <span>住所・現在地で探す</span>
-                            </button>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-basket-shopping absolute -right-3 -bottom-3 text-8xl text-white/10"></i>
-                </div>
-
-                <!-- Live Map + Manual Store Search (最も確実な方法) -->
-                <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-gray-100 space-y-2.5">
-                    <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-map text-brand-600"></i>
-                        地図で近くのお店を見る
-                    </h3>
-                    <p class="text-[11px] text-gray-500">お店のマークをタップすると、自動でチラシ検索ボタンが出ます。うまく認識できない時は、地図を広げて（ピンチアウト）名前を確認し、下の欄に入力してください。</p>
-                    <div id="leaflet-map" class="w-full h-64 rounded-xl overflow-hidden border border-gray-200 bg-gray-100"></div>
-
-                    <button onclick="refreshShufooEmbed()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-magnifying-glass"></i> この地図の場所でチラシを探す
-                    </button>
-
-                    <div class="flex gap-2 pt-1">
-                        <input type="text" id="manual-store-input" placeholder="地図で見つけたお店の名前（例: イオン、ライフ）"
-                            class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500"
-                            onkeypress="if(event.key==='Enter') searchManualStore()">
-                        <button onclick="searchManualStore()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap">
-                            チラシを探す
-                        </button>
-                    </div>
-
-                    <div id="manual-store-links" class="hidden grid grid-cols-2 gap-2 pt-1">
-                        <!-- Dynamic links injected by JS -->
-                    </div>
-                </div>
-
-                <!-- Area-wide Flyer List (Tokubai / Shufoo! native postal code search) -->
-                <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-gray-100 space-y-2">
-                    <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-ul text-brand-600"></i>
-                        周辺のチラシを一括で見る
-                    </h3>
-                    <div id="area-flyer-links">
-                        <p class="text-[11px] text-gray-400">エリアを検索すると、ここにボタンが表示されます。</p>
-                    </div>
-                </div>
-
-                <!-- Nearby Flyers (Shufoo! embedded) -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                            <i class="fa-solid fa-newspaper text-brand-600"></i>
-                            周辺のチラシ一覧（Shufoo!）
-                        </h3>
-                        <div class="flex items-center gap-1.5">
-                            <a id="shufoo-embed-newtab-link" href="#" target="_blank" rel="noopener" class="text-[11px] text-white bg-orange-500 hover:bg-orange-600 px-2.5 py-1 rounded-full font-bold transition">
-                                <i class="fa-solid fa-up-right-from-square mr-1"></i>拡大して見る
-                            </a>
-                            <button onclick="goBackInShufooEmbed()" class="text-[11px] text-gray-600 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-full font-bold transition">
-                                <i class="fa-solid fa-arrow-left mr-1"></i>前の画面に戻る
-                            </button>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-gray-400 mb-2">上の地図の「この地図の場所でチラシを探す」で見つけたShufoo!のチラシ一覧を、ここにいつでも表示しています。枠の中の指ズームが効きにくい場合は「拡大して見る」から新しいタブで開いてください。</p>
-
-                    <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50" style="isolation: isolate;">
-                        <iframe id="shufoo-embed-frame" title="周辺のチラシ一覧" class="w-full" style="height: 420px; border: none; display: block;" loading="lazy"></iframe>
-                    </div>
-                </div>
-
-                <!-- Nearest Stores Highlight Grid (自動検出のおまけ機能) -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                            <i class="fa-solid fa-location-dot text-brand-600"></i>
-                            現在地から近い順のおすすめ店舗
-                        </h3>
-                        <span class="text-[11px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full font-bold" id="deals-count">0件表示中</span>
-                    </div>
-                    <p class="text-[10px] text-gray-400 mb-2">※自動で取得できた場合に表示されるおまけ機能です。表示されない場合は、上の地図や一括表示をご利用ください。</p>
-
-                    <div id="highlights-container" class="grid grid-cols-2 gap-3">
-                        <!-- Dynamic items injected by JS -->
-                    </div>
-                </div>
-
-                <!-- Shopping Street Teaser -->
-                <div id="shopping-street-teaser" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-people-group text-amber-500 text-xl"></i>
-                        <div>
-                            <h4 class="font-bold text-xs text-gray-800">近くの商店街・マーケット</h4>
-                            <p class="text-[10px] text-gray-500" id="shopping-street-teaser-count">0件見つかりました</p>
-                        </div>
-                    </div>
-                    <button onclick="switchTab('compare')" class="text-[11px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-xl shadow-sm transition whitespace-nowrap">一覧を見る</button>
-                </div>
-
-                <!-- Real Supermarket Summary Cards -->
-                <div id="nearby-stores-section">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                            <i class="fa-solid fa-store text-brand-600"></i>
-                            周辺の実在スーパー &amp; 本物チラシリンク
-                        </h3>
-                    </div>
-
-                    <div id="nearby-stores-container" class="space-y-2.5">
-                        <!-- Dynamic store list injected by JS -->
-                    </div>
-                </div>
-
-            </section>
-
-            <!-- TAB 2: FLYERS (本物チラシへのリンク集) -->
-            <section id="view-flyers" class="p-4 space-y-4 hidden">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="font-bold text-gray-800 text-base">WEBチラシを探す</h2>
-                        <p class="text-xs text-gray-500">お店ごとに、トクバイ・Shufoo!などのチラシを検索します</p>
-                    </div>
-                    <select id="flyer-category-select" onchange="switchFlyerCategory(this.value)"
-                        class="text-xs bg-brand-100 text-brand-800 font-bold pl-2.5 pr-1.5 py-1.5 rounded-full border-none focus:outline-none focus:ring-2 focus:ring-brand-400">
-                        <!-- Dynamic category options -->
-                    </select>
-                </div>
-
-                <!-- Store Selector Chips -->
-                <div id="flyer-store-selector" class="flex flex-wrap gap-2 max-h-[76px] overflow-y-auto pb-1 scrollbar-none">
-                    <!-- Dynamic store buttons -->
-                </div>
-
-                <!-- Store Info & Real Web Link Card -->
-                <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-xl border border-slate-800 space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-                        <div>
-                            <span class="text-[10px] bg-emerald-500 font-bold px-2 py-0.5 rounded text-white">本物チラシ検索</span>
-                            <h3 id="current-flyer-store-title" class="font-bold text-base mt-1 text-white">店舗名</h3>
-                        </div>
-                        <i class="fa-solid fa-newspaper text-3xl text-emerald-400"></i>
-                    </div>
-
-                    <div id="flyer-store-info" class="text-xs text-slate-300 leading-relaxed bg-slate-800/80 p-3 rounded-xl border border-slate-700 space-y-1">
-                        <p class="font-bold text-yellow-400"><i class="fa-solid fa-circle-info mr-1"></i>お店の情報:</p>
-                        <p>エリアを検索すると、周辺のお店が表示されます。</p>
-                    </div>
-
-                    <!-- Direct External Flyer Search Buttons -->
-                    <div class="pt-2 flex flex-col gap-2">
-                        <span class="text-[11px] text-slate-400"><i class="fa-solid fa-external-link text-emerald-400 mr-1"></i>本物のチラシサイトを検索する:</span>
-                        <div class="grid grid-cols-2 gap-2" id="real-flyer-link-buttons">
-                            <!-- Dynamic external links injected by JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Usage Tips (non-fake help content) -->
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-sm text-gray-800 mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-lightbulb text-amber-500"></i>使い方のヒント
-                    </h3>
-                    <ul class="text-[11px] text-gray-600 space-y-1.5 list-disc list-inside">
-                        <li>ボタンを押すと、そのお店の名前で検索した本物のページがブラウザで開きます。</li>
-                        <li>小さな個人商店は「トクバイ」「Shufoo!」に掲載されていない場合があります。その際は「まとめて検索」もお試しください。</li>
-                        <li>この一覧が表示されない時は、ホーム画面の地図でお店の名前を確認し、そこにある入力欄からも同じように検索できます。</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- TAB 3: SHOPPING STREETS (商店街・マーケット) -->
-            <section id="view-compare" class="p-4 space-y-4 hidden">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="font-bold text-gray-800 text-base">近くの商店街・マーケット</h2>
-                        <p class="text-xs text-gray-500">地図データに登録されている商店街・マーケットの一覧</p>
-                    </div>
-                    <span class="text-xs text-brand-600 bg-brand-50 font-bold px-2.5 py-1 rounded-full">手動で確認</span>
-                </div>
-
-                <!-- Info Banner about data limitation -->
-                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-start gap-2">
-                    <i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i>
-                    <p class="text-[11px] text-blue-800 leading-relaxed">「商店街全体の特売日」などの詳しい情報は、無料でまとまったデータが存在しないため自動では取得できません。「詳しく調べる」ボタンから、Google検索で手動でご確認ください。</p>
-                </div>
-
-                <!-- Shopping Street Cards -->
-                <div id="compare-matrix-container" class="space-y-3">
-                    <!-- Dynamic Cards -->
-                </div>
-            </section>
-
-            <!-- TAB 4: SHOPPING MEMO (買い物メモ) -->
-            <section id="view-memo" class="p-4 space-y-4 hidden">
-                <div>
-                    <h2 class="font-bold text-gray-800 text-base">買い物メモ</h2>
-                    <p class="text-xs text-gray-500">気になった商品やお店をメモしておきましょう</p>
-                </div>
-
-                <!-- Shopping List (Memo) -->
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-bold text-sm text-gray-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-clipboard-list text-brand-600"></i>
-                            買い物メモ (チェックリスト)
-                        </h3>
-                        <div class="flex items-center gap-2">
-                            <!-- LINEで送る (買い物メモ一括送信ボタン) -->
-                            <button onclick="shareMemoToLine()" class="bg-line-500 hover:bg-line-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-sm transition flex items-center gap-1">
-                                <i class="fa-brands fa-line"></i>
-                                <span>LINEで送る</span>
-                            </button>
-                            <button onclick="clearCompletedMemo()" class="text-[11px] text-gray-400 hover:text-red-500">済削除</button>
-                        </div>
-                    </div>
-
-                    <!-- Input for Custom Item -->
-                    <div class="flex gap-2 mb-3">
-                        <input type="text" id="memo-input" placeholder="追加したい品目（例: 醤油、牛乳）"
-                            class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand-500"
-                            onkeypress="if(event.key==='Enter') addCustomMemo()">
-                        <button onclick="addCustomMemo()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">
-                            追加
-                        </button>
-                    </div>
-
-                    <ul id="memo-list" class="space-y-2">
-                        <!-- Dynamic items -->
-                    </ul>
-                </div>
-
-                <!-- Price Memo (最安値メモ) -->
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-bold text-sm text-gray-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-tags text-brand-600"></i>
-                            最安値メモ
-                        </h3>
-                        <span class="text-[11px] text-gray-400">お店ごとの価格を記録</span>
-                    </div>
-
-                    <div class="space-y-2 mb-3">
-                        <input type="text" id="price-memo-name" placeholder="品名（例: 卵 Mサイズ10個）"
-                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand-500">
-                        <div class="flex gap-2">
-                            <input type="number" id="price-memo-price" placeholder="価格（円）" min="0"
-                                class="w-24 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand-500">
-                            <input type="text" id="price-memo-store" placeholder="お店の名前"
-                                class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand-500">
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="date" id="price-memo-date"
-                                class="w-36 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand-500">
-                            <input type="text" id="price-memo-note" placeholder="メモ（任意）"
-                                class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-brand-500">
-                        </div>
-                        <button onclick="addPriceMemo()" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-1.5 rounded-xl text-xs font-bold transition shadow-sm">
-                            記録する
-                        </button>
-                    </div>
-
-                    <ul id="price-memo-list" class="space-y-2">
-                        <!-- Dynamic items -->
-                    </ul>
-                </div>
-            </section>
-
-            <!-- TAB 5: STORES & SETTINGS (マイ店舗 & エリア設定) -->
-            <section id="view-stores" class="p-4 space-y-4 hidden">
-                <h2 class="font-bold text-gray-800 text-base">対象エリア＆店舗管理</h2>
-
-                <!-- Share App Banner inside Settings -->
-                <div class="bg-gradient-to-r from-line-500 to-emerald-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
-                    <div class="space-y-1">
-                        <h3 class="font-bold text-sm flex items-center gap-1.5">
-                            <i class="fa-brands fa-line text-lg"></i>
-                            家族・友達にアプリを送る
-                        </h3>
-                        <p class="text-[11px] text-emerald-100">LINEやSNSで特売アプリをシェアして共有できます</p>
-                    </div>
-                    <button onclick="openShareAppModal()" class="bg-white text-emerald-800 font-bold text-xs px-3 py-2 rounded-xl shadow hover:bg-emerald-50 transition whitespace-nowrap">
-                        共有する
-                    </button>
-                </div>
-
-                <!-- Display Settings -->
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
-                    <div>
-                        <h3 class="font-bold text-sm text-gray-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-text-height text-brand-600"></i>
-                            文字を大きく表示
-                        </h3>
-                        <p class="text-[11px] text-gray-500 mt-0.5">画面の文字が小さくて見えにくいときはオンにしてください</p>
-                    </div>
-                    <button id="large-text-toggle-btn" onclick="toggleLargeText()" class="shrink-0 w-14 h-8 rounded-full bg-gray-200 relative transition-colors">
-                        <span id="large-text-toggle-knob" class="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow transition-transform"></span>
-                    </button>
-                </div>
-
-                <!-- Area Info Card -->
-                <div class="bg-brand-50 rounded-2xl p-4 border border-brand-200 space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold text-brand-800"><i class="fa-solid fa-location-dot mr-1"></i>現在の設定エリア</span>
-                        <button onclick="openLocationModal()" class="text-xs bg-brand-600 hover:bg-brand-700 text-white px-3 py-1 rounded-lg font-bold shadow-sm transition">変更</button>
-                    </div>
-                    <p id="settings-location-name" class="text-sm font-bold text-gray-800">東京都江東区</p>
-                    <p class="text-[11px] text-gray-500">この地域周辺の実在するお店を、地図データから自動検出して本物チラシへのリンクを整理します。</p>
-                </div>
-
-                <!-- Stores List -->
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold text-gray-700">検出された周辺の実在店舗</span>
-                        <span class="text-xs text-brand-600 font-bold" id="fav-stores-count">0件 検出済み</span>
-                    </div>
-
-                    <div id="all-stores-list" class="space-y-2.5">
-                        <!-- Dynamic Store Cards -->
-                    </div>
-                </div>
-            </section>
-
         </main>
 
-        <!-- Bottom Navigation Bar -->
-        <nav class="fixed bottom-0 max-w-md w-full bg-white border-t border-gray-200 z-40 flex justify-around items-center h-16 px-2 shadow-lg">
-            <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center justify-center w-full h-full text-brand-600 tab-active">
-                <i class="fa-solid fa-house text-lg"></i>
-                <span class="text-[10px] mt-0.5">ホーム</span>
-            </button>
-            <button onclick="switchTab('flyers')" id="nav-flyers" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-brand-600">
-                <i class="fa-solid fa-newspaper text-lg"></i>
-                <span class="text-[10px] mt-0.5">本物チラシ</span>
-            </button>
-            <button onclick="switchTab('compare')" id="nav-compare" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-brand-600">
-                <i class="fa-solid fa-people-group text-lg"></i>
-                <span class="text-[10px] mt-0.5">商店街</span>
-            </button>
-            <button onclick="switchTab('memo')" id="nav-memo" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-brand-600 relative">
-                <i class="fa-solid fa-clipboard-list text-lg"></i>
-                <span class="text-[10px] mt-0.5">買い物メモ</span>
-                <span id="memo-badge" class="absolute top-2 right-4 bg-sale-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
-            </button>
-            <button onclick="switchTab('stores')" id="nav-stores" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-brand-600">
-                <i class="fa-solid fa-store text-lg"></i>
-                <span class="text-[10px] mt-0.5">エリア設定</span>
-            </button>
-        </nav>
-
-        <!-- Modal 1: Change Location & GPS Handler -->
-        <div id="location-modal" class="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
-            <div class="bg-white rounded-2xl max-w-xs w-full p-5 space-y-4 shadow-2xl transform scale-95 transition-transform duration-200" id="location-modal-card">
-                <div class="flex justify-between items-center border-b border-gray-100 pb-2.5">
-                    <h3 class="font-bold text-gray-800 text-base flex items-center gap-2">
-                        <i class="fa-solid fa-location-dot text-brand-600"></i>
-                        対象エリアの設定
-                    </h3>
-                    <button onclick="closeLocationModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
-                </div>
-
-                <p class="text-xs text-gray-600 leading-relaxed">
-                    現在地、または指定した市区町村（例: 世田谷区、横浜市、大阪市北区等）の近隣実在スーパーを自動検出します。
-                </p>
-
-                <!-- GPS Location Button -->
-                <button onclick="useGPSLocation()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow transition">
-                    <i class="fa-solid fa-location-crosshairs text-yellow-300"></i>
-                    <span>GPSで現在地を取得</span>
-                </button>
-
-                <div class="relative flex py-1 items-center">
-                    <div class="flex-grow border-t border-gray-200"></div>
-                    <span class="flex-shrink mx-2 text-[10px] text-gray-400 font-bold">または手動入力</span>
-                    <div class="flex-grow border-t border-gray-200"></div>
-                </div>
-
-                <!-- Manual Address Input -->
-                <div class="space-y-2">
-                    <input type="text" id="manual-address-input" placeholder="例: 東京都世田谷区, 大阪市北区, 横浜市"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500"
-                        onkeypress="if(event.key === 'Enter') applyManualAddress()">
-                    <button onclick="applyManualAddress()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm">
-                        このエリアに変更する
+        <!-- 地図 -->
+        <section id="search-map" class="screen" aria-label="さがす（地図）" hidden>
+            <div id="map"></div>
+            <div id="map-top">
+                <div class="row">
+                    <button type="button" class="area-btn" data-act="open-area" id="area-btn-map">
+                        <svg class="ic" width="18" height="18" style="color:#0B6B3A"><use href="#i-pin"/></svg>
+                        <span class="area-label">江東区</span>
+                        <svg class="ic" width="16" height="16" style="color:#55655B"><use href="#i-down"/></svg>
                     </button>
+                    <div class="seg">
+                        <button type="button" data-act="mode-list"><svg class="ic" width="16" height="16" style="stroke-width:2.4"><use href="#i-list"/></svg><span>リスト</span></button>
+                        <button type="button" aria-current="true" data-act="mode-map"><svg class="ic" width="16" height="16" style="stroke-width:2.4"><use href="#i-map"/></svg><span>地図</span></button>
+                    </div>
                 </div>
-
-                <button onclick="closeLocationModal()" class="w-full bg-gray-100 text-gray-600 text-xs py-2 rounded-xl font-medium hover:bg-gray-200 transition">閉じる</button>
+                <form class="searchbox" id="form-map" role="search">
+                    <svg class="ic" width="20" height="20" style="color:#55655B"><use href="#i-search"/></svg>
+                    <input type="search" id="q-map" aria-label="お店の名前" placeholder="お店の名前で探す" enterkeyhint="search" autocomplete="off">
+                    <button type="submit">探す</button>
+                </form>
             </div>
-        </div>
-
-        <!-- Modal 2: Share / Send App Modal -->
-        <div id="share-app-modal" class="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
-            <div class="bg-white rounded-2xl max-w-xs w-full p-5 space-y-4 shadow-2xl transform scale-95 transition-transform duration-200" id="share-app-modal-card">
-                <div class="flex justify-between items-center border-b border-gray-100 pb-2.5">
-                    <h3 class="font-bold text-gray-800 text-base flex items-center gap-2">
-                        <i class="fa-solid fa-share-nodes text-brand-600"></i>
-                        アプリを家族・友達に送る
-                    </h3>
-                    <button onclick="closeShareAppModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
-                </div>
-
-                <p class="text-xs text-gray-600 leading-relaxed">
-                    お買い物のパートナーやご家族にアプリを送信して、特売情報や買い物メモを一緒にチェックしましょう！
-                </p>
-
-                <div class="space-y-2">
-                    <!-- LINE Share -->
-                    <button onclick="shareAppToLine()" class="w-full bg-line-500 hover:bg-line-600 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow transition">
-                        <i class="fa-brands fa-line text-lg"></i>
-                        <span>LINEでアプリを送る</span>
-                    </button>
-
-                    <!-- Native Web Share API -->
-                    <button onclick="nativeShareApp()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow transition">
-                        <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                        <span>他のアプリ・SNSで共有</span>
-                    </button>
-
-                    <!-- Copy Link -->
-                    <button onclick="copyAppUrl()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-gray-200 transition">
-                        <i class="fa-solid fa-copy"></i>
-                        <span>アプリURLをコピー</span>
-                    </button>
-                </div>
-
-                <!-- QR Code Block -->
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex flex-col items-center text-center space-y-1.5">
-                    <span class="text-[10px] text-gray-500 font-bold"><i class="fa-solid fa-qrcode mr-1"></i>QRコードで読み取って開く</span>
-                    <img id="app-qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://example.com" alt="App QR Code" class="w-28 h-28 rounded-lg border border-gray-300 p-1 bg-white shadow-sm">
-                </div>
-
-                <button onclick="closeShareAppModal()" class="w-full bg-gray-100 text-gray-600 text-xs py-2 rounded-xl font-medium hover:bg-gray-200 transition">閉じる</button>
-            </div>
-        </div>
-
+        </section>
     </div>
 
-    <script>
-        let currentLocation = "東京都江東区";
-        let currentLocationCoords = null; // { lat, lon }
-        let leafletMap = null;
-        let leafletMarker = null;
-        let mapCenterCoords = null; // 地図をドラッグして動かした後の中心座標（Shufoo!一括リンクに使う）
-        let lastShufooEmbedCoords = null; // 埋め込み枠に最後に表示した場所（「前の画面に戻る」で使う）
-        let activeTab = "home";
-        let activeFlyerStoreId = "";
-        let shoppingMemo = [];
-        let priceMemo = []; // 最安値メモ（品名・価格・店名・日付・任意メモ）localStorageに保存して次回起動時も見られるようにする
-        let largeTextEnabled = false; // 「文字を大きく表示」設定。端末ごとにlocalStorageへ保存
-
-        let allStoresData = [];  // すべての実在スーパー・商店（距離順）
-        let marketsData = [];    // 商店街・マーケット
-        let lastAreaFetchFailed = false; // スーパー検索そのものが失敗したか（0件と区別するため）
-        let lastAreaFetchErrorDetail = ""; // 失敗時の技術的な詳細（開発者ツールなしで確認できるように画面表示する）
-        let lastLocalShopsFetchFailed = false; // コンビニ・個人商店・商店街の追加取得が失敗したか（「0件」と区別するため）
-
-        const SHOP_CATEGORY_MAP = {
-            supermarket: { label: 'スーパー', icon: 'fa-cart-shopping' },
-            convenience: { label: 'コンビニ', icon: 'fa-store' },
-            drugstore: { label: 'ドラッグストア', icon: 'fa-pills' },
-            greengrocer: { label: '青果店', icon: 'fa-carrot' },
-            butcher: { label: '精肉店', icon: 'fa-drumstick-bite' },
-            seafood: { label: '鮮魚店', icon: 'fa-fish' },
-            bakery: { label: 'パン屋', icon: 'fa-bread-slice' },
-            deli: { label: '惣菜店', icon: 'fa-bowl-food' },
-            grocery: { label: '食料品店', icon: 'fa-basket-shopping' },
-            marketplace: { label: '商店街・マーケット', icon: 'fa-people-group' }
-        };
-
-        // 「WEBチラシを探す」タブでカテゴリ切り替えができる対象と、Nominatim検索用のOSMタグ
-        const FLYER_CATEGORY_TAG = {
-            drugstore: 'shop=chemist',
-            supermarket: 'shop=supermarket',
-            convenience: 'shop=convenience'
-        };
-        let activeFlyerCategory = 'drugstore'; // デフォルトはドラッグストア
-        let flyerCategoryStores = {}; // カテゴリごとの検索結果キャッシュ（エリアが変わったらリセットする）
-
-        window.addEventListener('DOMContentLoaded', () => {
-            resolveAreaByAddressText(currentLocation);
-            loadPriceMemo();
-            resetPriceMemoDateToToday();
-            renderPriceMemo();
-            loadTextSizePref();
-            renderFlyerCategoryOptions();
-        });
-
-        function escapeHtml(str) {
-            return String(str ?? '').replace(/[&<>"']/g, ch => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            }[ch]));
-        }
-
-        // ---------- エリア解決（住所→座標→実店舗検索） ----------
-
-        async function resolveAreaByAddressText(addressText) {
-            showLoading(true, "エリアを検索中...", `「${addressText}」の場所を調べています`);
-            try {
-                const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=jp&limit=1&accept-language=ja&q=${encodeURIComponent(addressText)}`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('geocode failed');
-                const list = await res.json();
-                if (!list || list.length === 0) {
-                    showLoading(false);
-                    showToast(`「${addressText}」の場所が見つかりませんでした。地名を変えてお試しください`, "fa-circle-exclamation");
-                    return;
-                }
-                const lat = parseFloat(list[0].lat);
-                const lon = parseFloat(list[0].lon);
-                currentLocation = addressText;
-                currentLocationCoords = { lat, lon };
-                updateLocationUI(currentLocation);
-                initOrUpdateMap(lat, lon);
-                renderAreaFlyerLinks();
-                updateShufooEmbed(lat, lon);
-                showLoading(false);
-                await fetchRealStoresForLocation(lat, lon);
-            } catch (e) {
-                showLoading(false);
-                showToast("エリア検索に失敗しました。通信状態をご確認のうえ、もう一度お試しください", "fa-triangle-exclamation");
-            }
-        }
-
-        function fetchRealStoresForCurrentLocation() {
-            if (currentLocationCoords) {
-                fetchRealStoresForLocation(currentLocationCoords.lat, currentLocationCoords.lon);
-            } else {
-                resolveAreaByAddressText(currentLocation);
-            }
-        }
-
-        async function fetchRealStoresForLocation(lat, lon) {
-            // 地図・店名検索はすぐ使えるようにしたいので、画面全体はロックしない。
-            // 自動一覧（おまけ機能）の読み込み中であることだけを、その場所に小さく表示する。
-            lastAreaFetchFailed = false;
-            lastLocalShopsFetchFailed = false;
-            allStoresData = [];
-            marketsData = [];
-            flyerCategoryStores = {}; // エリアが変わったので、WEBチラシタブのカテゴリ別キャッシュも作り直す
-            renderAutoListLoadingState();
-
-            // まず「スーパー」を、ずっと安定して動いているNominatimで検索して表示する
-            const startedAt = Date.now();
-            try {
-                const results = await queryNominatimCategory('shop=supermarket', lat, lon, 0.03, 30);
-                allStoresData = parseNominatimResults(results, lat, lon, SHOP_CATEGORY_MAP.supermarket, 'supermarket');
-
-                renderAllViews();
-                ensureFlyerCategoryLoaded(activeFlyerCategory);
-
-                if (allStoresData.length === 0) {
-                    showToast(`「${currentLocation}」周辺では、地図データに登録されているスーパーが見つかりませんでした`, "fa-circle-exclamation");
-                } else {
-                    showToast(`「${currentLocation}」周辺の実在するスーパー ${allStoresData.length}件 を見つけました！`, "fa-circle-check");
-                }
-            } catch (e) {
-                const elapsedSec = ((Date.now() - startedAt) / 1000).toFixed(1);
-                console.error('スーパー検索に失敗しました:', e);
-                lastAreaFetchFailed = true;
-                lastAreaFetchErrorDetail = `${e?.name || 'Error'}: ${e?.message || String(e)}（${elapsedSec}秒後）`;
-                allStoresData = [];
-                marketsData = [];
-                renderAllViews();
-                showToast("自動でのお店の一覧取得に失敗しました。地図と店名検索はそのままお使いいただけます", "fa-circle-info");
-                return;
-            }
-
-            // コンビニ・個人商店・商店街は追加で（失敗してもスーパーの結果には影響させない）
-            fetchLocalShopsInBackground(lat, lon);
-        }
-
-        function renderAutoListLoadingState() {
-            const nearbySection = document.getElementById('nearby-stores-section');
-            const nearbyContainer = document.getElementById('nearby-stores-container');
-            const highlightsContainer = document.getElementById('highlights-container');
-
-            if (nearbySection) nearbySection.classList.add('hidden');
-            if (nearbyContainer) nearbyContainer.innerHTML = '';
-            if (highlightsContainer) {
-                highlightsContainer.innerHTML = `
-                    <div class="col-span-2 text-center text-xs text-gray-400 py-6 flex flex-col items-center gap-2">
-                        <div class="w-6 h-6 border-2 border-gray-200 border-t-brand-500 rounded-full animate-spin"></div>
-                        <span>自動でお店を検索しています…（地図と一括表示はそのままお使いいただけます）</span>
-                    </div>`;
-            }
-        }
-
-        async function fetchLocalShopsInBackground(lat, lon) {
-            // コンビニはメインのスーパー一覧に混ぜると見づらくなるため、ここでは商店街のみ追加する
-            // 商店街は shop=marketplace タグが付いていないことが多いため、名前に「商店街」を含む地点も合わせて探す
-            lastLocalShopsFetchFailed = false;
-            try {
-                const [marketRes, streetRes] = await Promise.allSettled([
-                    queryNominatimCategory('shop=marketplace', lat, lon, 0.03, 10),
-                    queryNominatimFreeText('商店街', lat, lon, 0.03, 10)
-                ]);
-
-                if (marketRes.status === 'rejected' && streetRes.status === 'rejected') {
-                    throw marketRes.reason;
-                }
-
-                const combined = [
-                    ...(marketRes.status === 'fulfilled' ? marketRes.value : []),
-                    ...(streetRes.status === 'fulfilled' ? streetRes.value : [])
-                ];
-                marketsData = parseNominatimResults(combined, lat, lon, SHOP_CATEGORY_MAP.marketplace, 'marketplace');
-
-                renderAllViews();
-            } catch (e) {
-                // 商店街の取得に失敗しても、スーパーは既に表示済みなので画面は止めない
-                lastLocalShopsFetchFailed = true;
-                renderShoppingStreets();
-            }
-        }
-
-        // ---------- Nominatimでのカテゴリ検索（安定して動くので、こちらを主に使う） ----------
-
-        async function queryNominatimCategory(categoryQuery, lat, lon, deltaDeg, limit) {
-            const minLon = lon - deltaDeg;
-            const minLat = lat - deltaDeg;
-            const maxLon = lon + deltaDeg;
-            const maxLat = lat + deltaDeg;
-            const viewbox = `${minLon},${minLat},${maxLon},${maxLat}`;
-            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent('[' + categoryQuery + ']')}&viewbox=${viewbox}&bounded=1&format=jsonv2&limit=${limit}&addressdetails=1&extratags=1&accept-language=ja`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error('nominatim category search failed: ' + res.status);
-            return await res.json();
-        }
-
-        async function queryNominatimFreeText(text, lat, lon, deltaDeg, limit) {
-            const minLon = lon - deltaDeg;
-            const minLat = lat - deltaDeg;
-            const maxLon = lon + deltaDeg;
-            const maxLat = lat + deltaDeg;
-            const viewbox = `${minLon},${minLat},${maxLon},${maxLat}`;
-            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&viewbox=${viewbox}&bounded=1&format=jsonv2&limit=${limit}&addressdetails=1&extratags=1&accept-language=ja`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error('nominatim free text search failed: ' + res.status);
-            return await res.json();
-        }
-
-        function parseNominatimResults(results, originLat, originLon, categoryInfo, categoryKey) {
-            const seen = new Set();
-            const stores = [];
-
-            (results || []).forEach((item) => {
-                const name = item.name || (item.display_name ? item.display_name.split(',')[0].trim() : '');
-                if (!name) return;
-
-                const lat = parseFloat(item.lat);
-                const lon = parseFloat(item.lon);
-                if (Number.isNaN(lat) || Number.isNaN(lon)) return;
-
-                const dedupeKey = `${name}|${lat.toFixed(4)}|${lon.toFixed(4)}`;
-                if (seen.has(dedupeKey)) return;
-                seen.add(dedupeKey);
-
-                const addr = item.address || {};
-                const address = [
-                    addr.province, addr.city, addr.town, addr.suburb,
-                    addr.neighbourhood, addr.quarter, addr.block_number, addr.house_number
-                ].filter(Boolean).join('');
-                const website = item.extratags?.website || item.extratags?.['contact:website'] || '';
-                const distanceKm = haversineKm(originLat, originLon, lat, lon);
-
-                stores.push({
-                    id: `nom-${item.place_id}`,
-                    name,
-                    category: categoryKey,
-                    categoryLabel: categoryInfo.label,
-                    icon: categoryInfo.icon,
-                    address,
-                    distanceKm,
-                    lat, lon,
-                    mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat + ',' + lon)}`,
-                    tokubaiUrl: `https://www.google.com/search?q=${encodeURIComponent('site:tokubai.co.jp ' + name + ' ' + currentLocation)}`,
-                    shufooUrl: buildShufooChirashiUrl(lat, lon),
-                    detailSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(name + ' ' + currentLocation + ' チラシ 特売')}`,
-                    websiteUrl: website || `https://www.google.com/search?q=${encodeURIComponent(name + ' ' + currentLocation + ' 公式サイト')}`,
-                    hasOfficialWebsite: Boolean(website)
-                });
-            });
-
-            stores.sort((a, b) => a.distanceKm - b.distanceKm);
-            return stores;
-        }
-
-
-        function haversineKm(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        }
-
-
-        // ---------- 位置情報の取得 ----------
-
-        function useGPSLocation() {
-            if (navigator.geolocation) {
-                showLoading(true, "GPS現在地を取得中...", "位置情報から周辺エリアの実在するお店を検索します");
-
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-
-                        let detectedLoc = "現在地";
-                        try {
-                            const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ja`);
-                            const geoData = await geoRes.json();
-                            detectedLoc = geoData.city || geoData.locality || geoData.principalSubdivision || "現在地";
-                        } catch (e) { /* 取得できなくても現在地名として処理を続ける */ }
-
-                        currentLocation = detectedLoc;
-                        currentLocationCoords = { lat, lon: lng };
-                        updateLocationUI(currentLocation);
-                        closeLocationModal();
-                        initOrUpdateMap(lat, lng);
-                        renderAreaFlyerLinks();
-                        updateShufooEmbed(lat, lng);
-                        showLoading(false);
-                        await fetchRealStoresForLocation(lat, lng);
-                    },
-                    (err) => {
-                        showLoading(false);
-                        showToast("GPS取得が許可されなかったため、手動入力をご利用ください", "fa-circle-exclamation");
-                    },
-                    { timeout: 8000 }
-                );
-            } else {
-                showToast("お使いの端末はGPSに対応していません", "fa-circle-exclamation");
-            }
-        }
-
-        function updateLocationUI(locName) {
-            const currentLocText = document.getElementById('current-location-text');
-            const settingsLocText = document.getElementById('settings-location-name');
-            if (currentLocText) currentLocText.innerText = locName;
-            if (settingsLocText) settingsLocText.innerText = locName;
-        }
-
-        // ---------- 地図表示（地図タイル配信は安定しているため、これを主な手段とする） ----------
-
-        function initOrUpdateMap(lat, lon) {
-            if (typeof L === 'undefined') return; // 地図ライブラリが読み込めなかった場合は何もしない
-
-            mapCenterCoords = { lat, lon };
-
-            if (!leafletMap) {
-                leafletMap = L.map('leaflet-map').setView([lat, lon], 18);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 21,
-                    maxNativeZoom: 19,
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-                }).addTo(leafletMap);
-                leafletMarker = L.marker([lat, lon]).addTo(leafletMap);
-                leafletMap.on('click', handleMapTap);
-                leafletMap.on('moveend', () => {
-                    const c = leafletMap.getCenter();
-                    mapCenterCoords = { lat: c.lat, lon: c.lng };
-                    renderAreaFlyerLinks();
-                });
-            } else {
-                leafletMap.setView([lat, lon], 18);
-                leafletMarker.setLatLng([lat, lon]);
-                setTimeout(() => leafletMap.invalidateSize(), 100);
-            }
-        }
-
-        function handleMapTap(e) {
-            const { lat, lng } = e.latlng;
-            const popup = L.popup({ maxWidth: 220 })
-                .setLatLng(e.latlng)
-                .setContent('<div style="font-size:12px;">この場所を調べています…</div>')
-                .openOn(leafletMap);
-
-            reverseGeocodeTap(lat, lng, popup);
-        }
-
-        async function reverseGeocodeTap(lat, lon, popup) {
-            try {
-                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&accept-language=ja`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('reverse geocode failed');
-                const data = await res.json();
-                const name = data?.name || (data?.display_name ? data.display_name.split(',')[0].trim() : '');
-
-                if (!name) {
-                    popup.setContent('<div style="font-size:12px;">ここでは場所の名前が分かりませんでした。お店のマークにもう少し近づけてタップしてみてください。</div>');
-                    return;
-                }
-
-                const links = buildManualSearchLinks(name, lat, lon);
-                popup.setContent(`
-                    <div style="font-size:12px; min-width:170px;">
-                        <div style="font-weight:bold; margin-bottom:6px;">${escapeHtml(name)}</div>
-                        <div style="display:flex; flex-direction:column; gap:5px;">
-                            <a href="${links.tokubaiUrl}" target="_blank" rel="noopener" style="color:#059669; font-weight:bold; text-decoration:none;">📰 トクバイで探す</a>
-                            <a href="${links.shufooUrl}" target="_blank" rel="noopener" style="color:#ea580c; font-weight:bold; text-decoration:none;">📰 Shufoo!で探す</a>
-                            <a href="${links.searchUrl}" target="_blank" rel="noopener" style="color:#374151; font-weight:bold; text-decoration:none;">🔍 まとめて検索</a>
-                        </div>
-                    </div>
-                `);
-            } catch (e) {
-                popup.setContent('<div style="font-size:12px;">調べるのに失敗しました。もう一度タップしてみてください。</div>');
-            }
-        }
-
-        function buildShufooChirashiUrl(lat, lon) {
-            // Shufoo!は座標を直接渡すと、その場所周辺のチラシ一覧に飛べる（categoryId=101はスーパーのみに絞り込み）
-            return `https://www.shufoo.net/pntweb/chirashiList/${lat}/${lon}/?categoryId=101`;
-        }
-
-        function buildManualSearchLinks(name, lat, lon) {
-            // 店名を指定した「絞り込み検索」なので、周辺一覧（座標のみのURL）ではなく、
-            // その店名で絞り込んだ検索結果を返す。
-            return {
-                tokubaiUrl: `https://www.google.com/search?q=${encodeURIComponent('site:tokubai.co.jp ' + name + ' ' + currentLocation)}`,
-                shufooUrl: `https://www.google.com/search?q=${encodeURIComponent('site:shufoo.net ' + name + ' ' + currentLocation)}`,
-                mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + currentLocation)}`,
-                searchUrl: `https://www.google.com/search?q=${encodeURIComponent(name + ' ' + currentLocation + ' チラシ 特売')}`
-            };
-        }
-
-        function renderAreaFlyerLinks() {
-            const container = document.getElementById('area-flyer-links');
-            if (!container) return;
-
-            const coords = mapCenterCoords || currentLocationCoords;
-            if (!coords) {
-                container.innerHTML = `<p class="text-[11px] text-gray-400">エリアを検索すると、ここにリンクが表示されます。</p>`;
-                return;
-            }
-
-            const shufooAreaUrl = buildShufooChirashiUrl(coords.lat, coords.lon);
-
-            container.innerHTML = `
-                <a href="${shufooAreaUrl}" target="_blank" rel="noopener" class="block bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2.5 rounded-xl text-center shadow-sm transition">
-                    <i class="fa-solid fa-newspaper mr-1"></i> 周辺スーパーのチラシ一覧を見る（Shufoo!）
-                </a>
-                <p class="text-[10px] text-gray-400 mt-1">今、地図に表示されている場所の周辺にあるスーパーのチラシが、まとめて見られます。地図を動かすとリンク先も一緒に変わります。</p>
-            `;
-        }
-
-        function searchManualStore() {
-            const input = document.getElementById('manual-store-input');
-            const name = input ? input.value.trim() : '';
-            if (!name) {
-                showToast("お店の名前を入力してください", "fa-circle-exclamation");
-                return;
-            }
-
-            const { tokubaiUrl, shufooUrl, mapUrl, searchUrl } = buildManualSearchLinks(name);
-
-            const linksContainer = document.getElementById('manual-store-links');
-            if (linksContainer) {
-                linksContainer.classList.remove('hidden');
-                linksContainer.innerHTML = `
-                    <a href="${tokubaiUrl}" target="_blank" rel="noopener" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold py-1.5 rounded-xl text-center border border-emerald-200 transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-newspaper text-xs"></i> トクバイ
-                    </a>
-                    <a href="${shufooUrl}" target="_blank" rel="noopener" class="bg-orange-50 hover:bg-orange-100 text-orange-800 text-[11px] font-bold py-1.5 rounded-xl text-center border border-orange-200 transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-file-lines text-xs"></i> Shufoo!
-                    </a>
-                    <a href="${mapUrl}" target="_blank" rel="noopener" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-bold py-1.5 rounded-xl text-center border border-gray-200 transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-map-location-dot text-xs text-red-500"></i> 地図
-                    </a>
-                    <a href="${searchUrl}" target="_blank" rel="noopener" class="bg-gray-600 hover:bg-gray-700 text-white text-[11px] font-bold py-1.5 rounded-xl text-center transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-magnifying-glass text-xs"></i> まとめて検索
-                    </a>
-                `;
-            }
-        }
-
-        function applyManualAddress() {
-            const input = document.getElementById('manual-address-input');
-            const val = input ? input.value.trim() : '';
-            if (!val) {
-                showToast("市区町村名を入力してください", "fa-circle-exclamation");
-                return;
-            }
-            closeLocationModal();
-            resolveAreaByAddressText(val);
-        }
-
-        // ---------- 描画 ----------
-
-        function renderAllViews() {
-            renderHighlights();
-            renderNearbyStores();
-            renderShoppingStreetTeaser();
-            renderFlyerStoreSelector();
-            renderFlyerDetail();
-            renderShoppingStreets();
-            renderShoppingMemo();
-            renderPriceMemo();
-            renderAllStoresList();
-        }
-
-        function renderEmptyStateHtml() {
-            if (lastAreaFetchFailed) {
-                return `
-                    <div class="text-center py-6 space-y-2 bg-amber-50 border border-amber-200 rounded-2xl">
-                        <i class="fa-solid fa-circle-info text-amber-500 text-xl"></i>
-                        <p class="text-xs text-amber-800 px-4">自動でのお店の一覧取得が、今回はうまくいきませんでした（おまけ機能のため、失敗することがあります）。上の地図と店名入力から、本物のチラシを探すことができます。</p>
-                        <button onclick="fetchRealStoresForCurrentLocation()" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold px-4 py-1.5 rounded-xl transition shadow-sm">
-                            <i class="fa-solid fa-rotate-right mr-1"></i>もう一度試す
-                        </button>
-                        ${lastAreaFetchErrorDetail ? `<p class="text-[10px] text-amber-400 px-4 break-all">技術情報: ${escapeHtml(lastAreaFetchErrorDetail)}</p>` : ''}
-                    </div>`;
-            }
-            return `<div class="text-center text-xs text-gray-400 py-6">お店が見つかりませんでした。上の「住所・現在地で探す」から場所を変えてお試しください。</div>`;
-        }
-
-        function storeCardIconBlock(store) {
-            return `
-                <div class="relative h-20 bg-gradient-to-br from-brand-50 to-brand-100 flex items-center justify-center">
-                    <i class="fa-solid ${store.icon} text-3xl text-brand-500"></i>
-                    <span class="absolute top-2 left-2 bg-white/90 text-brand-700 text-[9px] font-bold px-2 py-0.5 rounded-full shadow">${store.categoryLabel}</span>
-                </div>`;
-        }
-
-        function renderHighlights() {
-            const container = document.getElementById('highlights-container');
-            if (!container) return;
-
-            const top = allStoresData.slice(0, 6);
-
-            if (top.length === 0) {
-                container.innerHTML = `<div class="col-span-2">${renderEmptyStateHtml()}</div>`;
-            } else {
-                container.innerHTML = top.map(store => `
-                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col justify-between transition hover:shadow-md">
-                        <div>
-                            ${storeCardIconBlock(store)}
-                            <div class="p-2.5">
-                                <h4 class="font-bold text-xs text-gray-800 line-clamp-1">${escapeHtml(store.name)}</h4>
-                                <p class="text-[10px] text-gray-400 mt-0.5">現在地から約${store.distanceKm.toFixed(1)}km</p>
-                            </div>
-                        </div>
-                        <div class="p-2.5 pt-0 space-y-1.5">
-                            <div class="grid grid-cols-3 gap-1">
-                                <a href="${store.tokubaiUrl}" target="_blank" rel="noopener" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[9px] font-bold py-1 rounded-lg text-center border border-emerald-200 transition">トクバイ</a>
-                                <a href="${store.shufooUrl}" target="_blank" rel="noopener" class="bg-orange-50 hover:bg-orange-100 text-orange-800 text-[9px] font-bold py-1 rounded-lg text-center border border-orange-200 transition">Shufoo!</a>
-                                <a href="${store.mapUrl}" target="_blank" rel="noopener" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[9px] font-bold py-1 rounded-lg text-center border border-gray-200 transition">地図</a>
-                            </div>
-                            <a href="${store.websiteUrl}" target="_blank" rel="noopener"
-                                class="block w-full bg-brand-50 hover:bg-brand-600 hover:text-white text-brand-700 text-[11px] font-bold py-1.5 rounded-xl transition text-center border border-brand-200">
-                                ${store.hasOfficialWebsite ? '公式サイト' : 'サイトを探す'}
-                            </a>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            const dealsCount = document.getElementById('deals-count');
-            if (dealsCount) dealsCount.innerText = `${allStoresData.length}件表示中`;
-        }
-
-        // ---------- Shufoo!埋め込み表示 ----------
-
-        function updateShufooEmbed(lat, lon) {
-            const frame = document.getElementById('shufoo-embed-frame');
-            if (!frame) return;
-            lastShufooEmbedCoords = { lat, lon };
-            const url = buildShufooChirashiUrl(lat, lon);
-            frame.src = url;
-            const newTabLink = document.getElementById('shufoo-embed-newtab-link');
-            if (newTabLink) newTabLink.href = url;
-        }
-
-        function refreshShufooEmbed() {
-            const coords = mapCenterCoords || currentLocationCoords;
-            if (!coords) {
-                showToast("先にエリアを検索してください", "fa-circle-exclamation");
-                return;
-            }
-            updateShufooEmbed(coords.lat, coords.lon);
-            showToast("今の地図の場所でチラシを表示しました", "fa-rotate-right");
-        }
-
-        function goBackInShufooEmbed() {
-            // 他サイトの中の「戻る」を直接操作すると、ブラウザによって効かないことがあるため、
-            // 代わりに「最後に表示していた一覧」を再表示する、確実な方法にしている。
-            if (!lastShufooEmbedCoords) {
-                showToast("まだチラシ一覧を表示していません", "fa-circle-exclamation");
-                return;
-            }
-            updateShufooEmbed(lastShufooEmbedCoords.lat, lastShufooEmbedCoords.lon);
-        }
-
-        function renderNearbyStores() {
-            const container = document.getElementById('nearby-stores-container');
-            const section = document.getElementById('nearby-stores-section');
-            if (!container) return;
-
-            // 「取得できませんでした」の表示は上のセクションで一度だけ出すので、ここは非表示にして重複を避ける
-            if (allStoresData.length === 0) {
-                if (section) section.classList.add('hidden');
-                container.innerHTML = '';
-                return;
-            }
-            if (section) section.classList.remove('hidden');
-
-            container.innerHTML = allStoresData.map(store => `
-                <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2 hover:border-brand-300 transition">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-sm">
-                                <i class="fa-solid ${store.icon}"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-xs text-gray-800">${escapeHtml(store.name)}</h4>
-                                <p class="text-[10px] text-gray-400 mt-0.5">${store.categoryLabel}・現在地から約${store.distanceKm.toFixed(1)}km</p>
-                            </div>
-                        </div>
-                        <a href="${store.websiteUrl}" target="_blank" rel="noopener" class="text-xs bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap">
-                            ${store.hasOfficialWebsite ? '公式サイト' : 'サイトを探す'}
-                        </a>
-                    </div>
-                    <div class="flex gap-2 pt-1">
-                        <a href="${store.tokubaiUrl}" target="_blank" rel="noopener" class="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold py-1.5 rounded-xl text-center border border-emerald-200 transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-newspaper text-xs"></i> トクバイ
-                        </a>
-                        <a href="${store.shufooUrl}" target="_blank" rel="noopener" class="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-800 text-[11px] font-bold py-1.5 rounded-xl text-center border border-orange-200 transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-file-lines text-xs"></i> Shufoo!
-                        </a>
-                        <a href="${store.mapUrl}" target="_blank" rel="noopener" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-bold py-1.5 rounded-xl text-center border border-gray-200 transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-map-location-dot text-xs text-red-500"></i> 地図
-                        </a>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderShoppingStreetTeaser() {
-            const section = document.getElementById('shopping-street-teaser');
-            if (!section) return;
-            if (marketsData.length === 0) {
-                section.classList.add('hidden');
-                return;
-            }
-            section.classList.remove('hidden');
-            const countElem = document.getElementById('shopping-street-teaser-count');
-            if (countElem) countElem.innerText = `${marketsData.length}件見つかりました`;
-        }
-
-        function renderFlyerCategoryOptions() {
-            const select = document.getElementById('flyer-category-select');
-            if (!select) return;
-
-            select.innerHTML = Object.keys(FLYER_CATEGORY_TAG).map(key => `
-                <option value="${key}" ${key === activeFlyerCategory ? 'selected' : ''}>${SHOP_CATEGORY_MAP[key].label}</option>
-            `).join('');
-        }
-
-        function switchFlyerCategory(categoryKey) {
-            activeFlyerCategory = categoryKey;
-            activeFlyerStoreId = "";
-            ensureFlyerCategoryLoaded(categoryKey);
-        }
-
-        async function ensureFlyerCategoryLoaded(categoryKey) {
-            renderFlyerCategoryOptions();
-
-            if (flyerCategoryStores[categoryKey]) {
-                renderFlyerStoreSelector();
-                renderFlyerDetail();
-                return;
-            }
-
-            const coords = currentLocationCoords || mapCenterCoords;
-            const container = document.getElementById('flyer-store-selector');
-            if (!coords) {
-                if (container) container.innerHTML = `<p class="text-[11px] text-gray-400 py-2">先にエリアを検索してください</p>`;
-                return;
-            }
-
-            if (container) container.innerHTML = `<p class="text-[11px] text-gray-400 py-2"><i class="fa-solid fa-spinner fa-spin"></i> ${SHOP_CATEGORY_MAP[categoryKey].label}を探しています…</p>`;
-
-            try {
-                const results = await queryNominatimCategory(FLYER_CATEGORY_TAG[categoryKey], coords.lat, coords.lon, 0.03, 30);
-                flyerCategoryStores[categoryKey] = parseNominatimResults(results, coords.lat, coords.lon, SHOP_CATEGORY_MAP[categoryKey], categoryKey);
-            } catch (e) {
-                flyerCategoryStores[categoryKey] = [];
-            }
-
-            if (categoryKey === activeFlyerCategory) {
-                renderFlyerStoreSelector();
-                renderFlyerDetail();
-            }
-        }
-
-        function renderFlyerStoreSelector() {
-            const container = document.getElementById('flyer-store-selector');
-            if (!container) return;
-
-            const stores = flyerCategoryStores[activeFlyerCategory] || [];
-
-            if (!activeFlyerStoreId || !stores.some(s => s.id === activeFlyerStoreId)) {
-                activeFlyerStoreId = stores[0]?.id || "";
-            }
-
-            if (stores.length === 0) {
-                container.innerHTML = `<p class="text-[11px] text-gray-400 py-2">このエリアには「${SHOP_CATEGORY_MAP[activeFlyerCategory].label}」の登録が見つかりませんでした</p>`;
-                return;
-            }
-
-            container.innerHTML = stores.map(store => `
-                <button onclick="selectStoreFlyer('${store.id}')"
-                    class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${activeFlyerStoreId === store.id ? 'bg-brand-600 text-white shadow' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}">
-                    ${escapeHtml(store.name)}
+    <!-- ===== 買い物メモ ===== -->
+    <main id="screen-memo" class="screen" aria-label="買い物メモ" hidden>
+        <div class="col">
+            <div class="page-head">
+                <h1>買い物メモ</h1>
+                <button type="button" class="line-btn" data-act="share-memo">
+                    <svg class="ic" width="18" height="18" style="stroke-width:2.4"><use href="#i-share"/></svg>
+                    <span>買うものをLINEで送る</span>
                 </button>
-            `).join('');
-        }
+            </div>
 
-        function selectStoreFlyer(storeId) {
-            activeFlyerStoreId = storeId;
-            renderFlyerStoreSelector();
-            renderFlyerDetail();
-            switchTab('flyers');
-        }
+            <div class="seg-wide">
+                <button type="button" id="seg-buy" aria-pressed="true" data-act="memo-tab-buy"><span>買うもの</span><span class="count-badge" id="remain-badge">0</span></button>
+                <button type="button" id="seg-price" aria-pressed="false" data-act="memo-tab-price"><span>最安値メモ</span></button>
+            </div>
 
-        function renderFlyerDetail() {
-            const stores = flyerCategoryStores[activeFlyerCategory] || [];
-            const target = stores.find(s => s.id === activeFlyerStoreId) || stores[0];
-
-            const titleElem = document.getElementById('current-flyer-store-title');
-            const infoElem = document.getElementById('flyer-store-info');
-            const linkBtns = document.getElementById('real-flyer-link-buttons');
-
-            if (!target) {
-                if (titleElem) titleElem.innerText = `${SHOP_CATEGORY_MAP[activeFlyerCategory].label}が見つかりません`;
-                if (infoElem) infoElem.innerHTML = `<p class="font-bold text-yellow-400"><i class="fa-solid fa-circle-info mr-1"></i>お店の情報:</p><p>自動での一覧取得ができていません。ホーム画面の地図でお店の名前を確認し、入力して検索してください。</p>`;
-                if (linkBtns) {
-                    linkBtns.innerHTML = `
-                        <button onclick="switchTab('home')" class="col-span-2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-2 rounded-xl text-[11px] text-center flex items-center justify-center gap-1 shadow">
-                            <i class="fa-solid fa-map"></i> ホーム画面の地図で探す
-                        </button>`;
-                }
-                return;
-            }
-
-            if (titleElem) titleElem.innerText = target.name;
-            if (infoElem) {
-                infoElem.innerHTML = `
-                    <p class="font-bold text-yellow-400"><i class="fa-solid fa-circle-info mr-1"></i>お店の情報:</p>
-                    <p>現在地から約${target.distanceKm.toFixed(1)}km</p>
-                    <p>${target.address ? escapeHtml(target.address) : '住所情報は地図データに登録されていません（地図でご確認ください）'}</p>
-                `;
-            }
-            if (linkBtns) {
-                linkBtns.innerHTML = `
-                    <a href="${target.tokubaiUrl}" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-[11px] text-center flex items-center justify-center gap-1 shadow">
-                        <i class="fa-solid fa-file-invoice"></i> トクバイで探す
-                    </a>
-                    <a href="${target.shufooUrl}" target="_blank" rel="noopener" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-xl text-[11px] text-center flex items-center justify-center gap-1 shadow">
-                        <i class="fa-solid fa-newspaper"></i> Shufoo!で探す
-                    </a>
-                    <a href="${target.mapUrl}" target="_blank" rel="noopener" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-xl text-[11px] text-center flex items-center justify-center gap-1 shadow">
-                        <i class="fa-solid fa-location-arrow"></i> Googleマップ
-                    </a>
-                    <a href="${target.detailSearchUrl}" target="_blank" rel="noopener" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded-xl text-[11px] text-center flex items-center justify-center gap-1 shadow">
-                        <i class="fa-solid fa-magnifying-glass"></i> まとめて検索
-                    </a>
-                `;
-            }
-        }
-
-        function renderShoppingStreets() {
-            const container = document.getElementById('compare-matrix-container');
-            if (!container) return;
-
-            if (marketsData.length === 0) {
-                if (lastLocalShopsFetchFailed || lastAreaFetchFailed) {
-                    container.innerHTML = `
-                        <div class="bg-amber-50 rounded-2xl p-5 text-center border border-amber-200 shadow-sm space-y-1">
-                            <i class="fa-solid fa-circle-info text-amber-500 text-xl mb-1"></i>
-                            <p class="text-xs text-amber-800">商店街の自動取得が、今回はうまくいきませんでした。</p>
-                            <p class="text-[11px] text-amber-700">ホーム画面の地図で「商店街」らしき場所を探し、名前を入力して検索することもできます。</p>
-                        </div>`;
-                } else {
-                    container.innerHTML = `
-                        <div class="bg-white rounded-2xl p-5 text-center border border-gray-100 shadow-sm">
-                            <i class="fa-solid fa-people-group text-3xl text-gray-300 mb-2"></i>
-                            <p class="text-xs text-gray-500">このエリアの地図データには、商店街・マーケットの登録が見つかりませんでした。</p>
-                            <p class="text-[11px] text-gray-400 mt-1">地図データへの登録状況により表示できない場合があります。</p>
-                        </div>`;
-                }
-                return;
-            }
-
-            container.innerHTML = marketsData.map(m => `
-                <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-gray-100 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <h4 class="font-bold text-xs text-gray-800">${escapeHtml(m.name)}</h4>
-                        <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">現在地から約${m.distanceKm.toFixed(1)}km</span>
-                    </div>
-                    ${m.address ? `<p class="text-[11px] text-gray-500">${escapeHtml(m.address)}</p>` : ''}
-                    <div class="flex gap-2 pt-1">
-                        <a href="${m.detailSearchUrl}" target="_blank" rel="noopener" class="flex-1 bg-brand-50 hover:bg-brand-100 text-brand-700 text-[11px] font-bold py-1.5 rounded-xl text-center border border-brand-200 transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-magnifying-glass text-xs"></i> 詳しく調べる
-                        </a>
-                        <a href="${m.mapUrl}" target="_blank" rel="noopener" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-bold py-1.5 rounded-xl text-center border border-gray-200 transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-map-location-dot text-xs text-red-500"></i> 地図
-                        </a>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderShoppingMemo() {
-            const list = document.getElementById('memo-list');
-            if (!list) return;
-
-            if (shoppingMemo.length === 0) {
-                list.innerHTML = `<li class="text-xs text-gray-400 text-center py-4">買い物メモは空です</li>`;
-                return;
-            }
-
-            list.innerHTML = shoppingMemo.map(item => `
-                <li class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
-                    <div class="flex items-center gap-2.5 flex-1 cursor-pointer" onclick="toggleMemoDone(${item.id})">
-                        <input type="checkbox" ${item.done ? 'checked' : ''} class="accent-brand-600 w-4 h-4 rounded">
-                        <span class="text-xs ${item.done ? 'line-through text-gray-400' : 'text-gray-800 font-medium'}">${escapeHtml(item.text)}</span>
-                    </div>
-                    <button onclick="removeMemo(${item.id})" class="text-gray-300 hover:text-red-500 text-xs p-1 transition">
-                        <i class="fa-solid fa-trash"></i>
+            <!-- 買うもの -->
+            <div id="memo-buy" style="display:flex;flex-direction:column;gap:14px">
+                <form class="add-row" id="form-memo">
+                    <input type="text" id="memo-input" aria-label="買うものの名前" placeholder="買うものを入れる（例：牛乳）" autocomplete="off">
+                    <button type="submit"><svg class="ic" width="18" height="18" style="stroke-width:2.6"><use href="#i-plus"/></svg><span>足す</span></button>
+                </form>
+                <ul class="memo-list" id="memo-list"></ul>
+                <div class="foot-row">
+                    <span class="rest">あと <span id="remain-text">0</span> つ</span>
+                    <button type="button" class="btn-clear" data-act="clear-done">
+                        <svg class="ic" width="17" height="17"><use href="#i-trash"/></svg><span>チェック済みを消す</span>
                     </button>
-                </li>
-            `).join('');
-        }
+                </div>
+            </div>
 
-        function renderAllStoresList() {
-            const container = document.getElementById('all-stores-list');
-            if (!container) return;
-
-            const combined = [...allStoresData, ...marketsData].sort((a, b) => a.distanceKm - b.distanceKm);
-
-            if (combined.length === 0) {
-                container.innerHTML = renderEmptyStateHtml();
-            } else {
-                container.innerHTML = combined.map(store => `
-                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <h4 class="font-bold text-xs text-gray-800">${escapeHtml(store.name)}</h4>
-                            <span class="text-[10px] text-gray-500">${store.categoryLabel}</span>
-                        </div>
-                        <p class="text-[11px] text-gray-500">現在地から約${store.distanceKm.toFixed(1)}km${store.address ? ' ・ ' + escapeHtml(store.address) : ''}</p>
-                        <div class="flex gap-2 pt-1 flex-wrap">
-                            <a href="${store.tokubaiUrl}" target="_blank" rel="noopener" class="text-[10px] text-emerald-700 font-bold hover:underline flex items-center gap-1">
-                                <i class="fa-solid fa-newspaper"></i> トクバイ
-                            </a>
-                            <a href="${store.shufooUrl}" target="_blank" rel="noopener" class="text-[10px] text-orange-700 font-bold hover:underline flex items-center gap-1">
-                                <i class="fa-solid fa-file-lines"></i> Shufoo!
-                            </a>
-                            <a href="${store.mapUrl}" target="_blank" rel="noopener" class="text-[10px] text-gray-600 font-bold hover:underline flex items-center gap-1">
-                                <i class="fa-solid fa-map-pin text-red-500"></i> 地図
-                            </a>
-                        </div>
+            <!-- 最安値メモ -->
+            <div id="memo-price" style="display:none;flex-direction:column;gap:14px">
+                <form class="form-card" id="form-price">
+                    <div class="f"><label for="pn">品名</label><input id="pn" type="text" placeholder="例：卵 Mサイズ10個" autocomplete="off"></div>
+                    <div class="f-row">
+                        <div class="f" style="width:128px;flex:none"><label for="pp">値段（円）</label><input id="pp" type="number" inputmode="numeric" min="0" placeholder="198"></div>
+                        <div class="f" style="flex:1"><label for="ps">お店</label><input id="ps" type="text" placeholder="例：ライフ" autocomplete="off"></div>
                     </div>
-                `).join('');
-            }
+                    <div class="f-row">
+                        <div class="f" style="width:158px;flex:none"><label for="pd">日にち</label><input id="pd" type="date"></div>
+                        <div class="f" style="flex:1"><label for="pm">ひとこと（なくてもOK）</label><input id="pm" type="text" autocomplete="off"></div>
+                    </div>
+                    <button type="submit" class="btn-record">記録する</button>
+                </form>
+                <ul class="price-list" id="price-list"></ul>
+            </div>
+        </div>
+    </main>
 
-            const countElem = document.getElementById('fav-stores-count');
-            if (countElem) countElem.innerText = `${combined.length}件 検出済み`;
+    <!-- ===== 設定 ===== -->
+    <main id="screen-settings" class="screen" aria-label="設定" hidden>
+        <div class="col" style="gap:20px">
+            <h1 style="margin:0;min-height:44px;display:flex;align-items:center;font-size:1.5rem;font-weight:800">設定</h1>
+
+            <section class="section">
+                <h2 class="group-title">さがす場所</h2>
+                <button type="button" class="area-row" data-act="open-area">
+                    <span class="ico"><svg class="ic" width="24" height="24"><use href="#i-pin"/></svg></span>
+                    <span class="tx"><small>いまのエリア</small><b id="settings-area">東京都江東区</b></span>
+                    <span class="go">変える<svg class="ic" width="18" height="18" style="stroke-width:2.6"><use href="#i-right"/></svg></span>
+                </button>
+            </section>
+
+            <section class="section">
+                <h2 class="group-title">見やすさ</h2>
+                <div class="set-card switch-card">
+                    <div class="switch-line">
+                        <div class="tx"><b id="lt">文字を大きく表示</b><small>小さくて読みにくいときに</small></div>
+                        <button type="button" class="switch" role="switch" aria-checked="false" aria-labelledby="lt" id="switch-large"><i></i></button>
+                    </div>
+                    <p class="sample">この大きさで表示されます</p>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="group-title">家族・友達にアプリを送る</h2>
+                <div class="set-card share-list">
+                    <button type="button" data-act="share-line"><span class="ico line"><svg class="ic" width="20" height="20" style="stroke-width:2.4"><use href="#i-share"/></svg></span><span class="lab">LINEで送る</span><svg class="ic" width="18" height="18" style="color:#7A8A80;stroke-width:2.6"><use href="#i-right"/></svg></button>
+                    <button type="button" data-act="share-native"><span class="ico"><svg class="ic" width="20" height="20"><use href="#i-share"/></svg></span><span class="lab">ほかのアプリで送る</span><svg class="ic" width="18" height="18" style="color:#7A8A80;stroke-width:2.6"><use href="#i-right"/></svg></button>
+                    <button type="button" data-act="share-copy"><span class="ico"><svg class="ic" width="20" height="20"><use href="#i-copy"/></svg></span><span class="lab">リンクをコピー</span><svg class="ic" width="18" height="18" style="color:#7A8A80;stroke-width:2.6"><use href="#i-right"/></svg></button>
+                </div>
+            </section>
+
+            <p class="credit">地図のデータ：© OpenStreetMap contributors</p>
+        </div>
+    </main>
+
+    <!-- 下の切り替え（3つ） -->
+    <nav id="nav" aria-label="メニュー">
+        <a href="#search" data-tab="search" aria-current="page"><svg class="ic" width="26" height="26" style="stroke-width:2.4"><use href="#i-search"/></svg><span>さがす</span></a>
+        <a href="#memo" data-tab="memo"><svg class="ic" width="26" height="26"><use href="#i-check"/></svg><span>買い物メモ</span></a>
+        <a href="#settings" data-tab="settings"><svg class="ic" width="26" height="26"><use href="#i-set"/></svg><span>設定</span></a>
+    </nav>
+
+    <!-- お店のチラシ（下から出る画面） -->
+    <div id="sheet-backdrop" class="backdrop" data-act="close-sheet"></div>
+    <section id="store-sheet" class="sheet" role="dialog" aria-label="選んだお店"></section>
+
+    <!-- エリアを変える（下から出る画面） -->
+    <div id="area-backdrop" class="backdrop" data-act="close-area"></div>
+    <section id="area-sheet" class="sheet" role="dialog" aria-label="エリアを変える">
+        <button type="button" class="grab" data-act="close-area" aria-label="とじる"><i></i></button>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-top:-10px">
+            <div style="display:flex;flex-direction:column">
+                <h1 style="margin:0;font-size:1.375rem;font-weight:800">エリアを変える</h1>
+                <span style="font-size:.875rem;color:#55655B">近くのお店を探す場所を選びます</span>
+            </div>
+            <button type="button" class="close-x" data-act="close-area" aria-label="とじる"><svg class="ic" width="20" height="20" style="stroke-width:2.6"><use href="#i-close"/></svg></button>
+        </div>
+        <button type="button" class="area-btn-big" data-act="use-gps"><svg class="ic" width="24" height="24"><use href="#i-gps"/></svg><span>いまいる場所を使う</span></button>
+        <div class="or" aria-hidden="true"><i></i><span>または</span><i></i></div>
+        <form id="form-area" style="display:flex;flex-direction:column;gap:10px">
+            <label for="area-input" style="font-size:.875rem;font-weight:700;color:#55655B">市区町村の名前を入れる</label>
+            <input id="area-input" class="field-input" type="text" placeholder="例：世田谷区、横浜市、大阪市北区" autocomplete="off">
+            <button type="submit" class="btn-outline-big">このエリアにする</button>
+        </form>
+    </section>
+
+    <div id="toast" role="status" aria-live="polite"><span id="toast-msg"></span></div>
+    <div id="loading" hidden>
+        <div class="spinner"></div>
+        <b id="loading-title">お店を探しています…</b>
+        <small id="loading-sub">地図データから探しています</small>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   保存するもの（アプリを閉じても消えない）
+   ============================================================ */
+const KEYS = {
+    area: 'tokuTokuChirashi_area',
+    shopping: 'tokuTokuChirashi_shoppingMemo',
+    price: 'tokuTokuChirashi_priceMemo',
+    large: 'tokuTokuChirashi_largeText'
+};
+function loadJson(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+}
+function saveJson(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* 保存できない環境では今回の表示中のみ */ }
+}
+
+/* ============================================================
+   状態
+   ============================================================ */
+const DEFAULT_AREA = '東京都江東区';
+let currentLocation = DEFAULT_AREA;
+let currentCoords = null;     // { lat, lon }
+let mapCenterCoords = null;   // 地図を動かした後の中心（まとめて見るに使う）
+let activeCat = 'supermarket';
+let nameFilter = '';
+let viewMode = 'list';        // 'list' | 'map'
+let activeTab = 'search';
+let memoTab = 'buy';
+let selectedId = null;
+let areaToken = 0;            // エリアが変わったら古い検索結果を捨てるための番号
+let catData = {};             // { カテゴリ: { status: 'loading'|'done'|'error', stores: [] } }
+let shoppingMemo = loadJson(KEYS.shopping, []);
+let priceMemo = loadJson(KEYS.price, []);
+let largeText = false;
+let map = null, mapTiles = null, markers = {};
+
+const CATS = {
+    supermarket: { label: 'スーパー', tag: 'shop=supermarket' },
+    drugstore:   { label: 'ドラッグストア', tag: 'shop=chemist' },
+    convenience: { label: 'コンビニ', tag: 'shop=convenience' },
+    marketplace: { label: '商店街', tag: null }
+};
+
+/* ============================================================
+   小さな道具
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+function ic(name, size, extra) {
+    return `<svg class="ic" width="${size}" height="${size}"${extra ? ` style="${extra}"` : ''}><use href="#i-${name}"/></svg>`;
+}
+function shortArea(name) {
+    const s = String(name).replace(/^(?:北海道|.{2,3}[都府県])/, '');
+    return s || name;
+}
+function localDateStr(d = new Date()) {
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+let toastTimer = null;
+function showToast(msg) {
+    $('toast-msg').textContent = msg;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 3200);
+}
+function showLoading(show, title, sub) {
+    if (title) $('loading-title').textContent = title;
+    if (sub) $('loading-sub').textContent = sub;
+    $('loading').hidden = !show;
+}
+function haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371, rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/* ============================================================
+   画面の切り替え（さがす／買い物メモ／設定）
+   ============================================================ */
+function showTab(tab) {
+    activeTab = tab;
+    $('screen-search').hidden = tab !== 'search';
+    $('screen-memo').hidden = tab !== 'memo';
+    $('screen-settings').hidden = tab !== 'settings';
+    document.querySelectorAll('#nav a').forEach(a => {
+        if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    if (tab !== 'search') closeSheet();
+    if (tab === 'search') applyViewMode();
+}
+
+function setViewMode(mode) {
+    viewMode = mode;
+    closeSheet();
+    applyViewMode();
+}
+function applyViewMode() {
+    $('search-list').hidden = viewMode !== 'list';
+    $('search-map').hidden = viewMode !== 'map';
+    if (viewMode === 'map') {
+        ensureMap();
+        if (map) setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 60);
+    }
+}
+
+/* ============================================================
+   エリアを決める（住所→座標）
+   ============================================================ */
+async function resolveAreaByAddressText(text) {
+    showLoading(true, 'エリアを探しています…', `「${text}」の場所を調べています`);
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=jp&limit=1&accept-language=ja&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('geocode failed');
+        const list = await res.json();
+        if (!list || list.length === 0) {
+            showLoading(false);
+            showToast(`「${text}」の場所が見つかりませんでした。地名を変えてお試しください`);
+            return false;
         }
+        setArea(text, parseFloat(list[0].lat), parseFloat(list[0].lon));
+        showLoading(false);
+        return true;
+    } catch (e) {
+        showLoading(false);
+        showToast('エリアの検索に失敗しました。通信状態をご確認のうえ、もう一度お試しください');
+        return false;
+    }
+}
 
-        // ---------- 買い物メモ ----------
+function setArea(name, lat, lon) {
+    currentLocation = name;
+    currentCoords = { lat, lon };
+    mapCenterCoords = { lat, lon };
+    saveJson(KEYS.area, { name, lat, lon });
+    areaToken++;
+    catData = {};
+    selectedId = null;
+    closeSheet();
+    updateAreaUI();
+    if (map) { map.setView([lat, lon], 15); }
+    loadCategory(activeCat, true);
+}
 
-        function addCustomMemo() {
-            const input = document.getElementById('memo-input');
-            const val = input ? input.value.trim() : '';
-            if (!val) return;
+function updateAreaUI() {
+    const short = shortArea(currentLocation);
+    document.querySelectorAll('.area-label').forEach(el => { el.textContent = short; });
+    document.querySelectorAll('.area-btn').forEach(el => el.setAttribute('aria-label', `エリアを変える。いまは${short}`));
+    $('settings-area').textContent = currentLocation;
+    $('hero-sub').textContent = `${short}のスーパーのチラシが、一覧で開きます`;
+    updateHeroLink();
+}
+function updateHeroLink() {
+    const c = mapCenterCoords || currentCoords;
+    $('hero-link').href = c ? buildShufooChirashiUrl(c.lat, c.lon) : 'https://www.shufoo.net/';
+}
 
-            shoppingMemo.push({
-                id: Date.now(),
-                text: val,
-                done: false
-            });
-            input.value = '';
-            renderShoppingMemo();
-            updateMemoBadge();
-            showToast("メモに追加しました", "fa-check");
+function useGPSLocation() {
+    if (!navigator.geolocation) {
+        showToast('お使いの端末では現在地が使えません。市区町村の名前を入れてください');
+        return;
+    }
+    showLoading(true, '現在地を調べています…', '位置情報の許可が出たら「許可」を押してください');
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const lat = pos.coords.latitude, lon = pos.coords.longitude;
+            let name = '現在地';
+            try {
+                const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ja`);
+                const d = await r.json();
+                name = d.city || d.locality || d.principalSubdivision || '現在地';
+            } catch (e) { /* 地名が取れなくても現在地として続ける */ }
+            closeArea();
+            setArea(name, lat, lon);
+            showLoading(false);
+        },
+        () => {
+            showLoading(false);
+            showToast('現在地が許可されませんでした。市区町村の名前を入れてください');
+        },
+        { timeout: 8000 }
+    );
+}
+
+/* ============================================================
+   お店を探す（OpenStreetMap / Nominatim・鍵の登録なし）
+   ============================================================ */
+async function queryNominatim(q, lat, lon, delta, limit) {
+    const viewbox = `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&viewbox=${viewbox}&bounded=1&format=jsonv2&limit=${limit}&addressdetails=1&extratags=1&accept-language=ja`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('nominatim search failed: ' + res.status);
+    return await res.json();
+}
+
+function buildShufooChirashiUrl(lat, lon) {
+    // 座標を渡すと、その場所の周辺のチラシ一覧に飛べる（categoryId=101はスーパーのみ）
+    return `https://www.shufoo.net/pntweb/chirashiList/${lat}/${lon}/?categoryId=101`;
+}
+function buildNameLinks(name) {
+    const area = currentLocation;
+    return {
+        tokubaiUrl: `https://www.google.com/search?q=${encodeURIComponent('site:tokubai.co.jp ' + name + ' ' + area)}`,
+        shufooUrl: `https://www.google.com/search?q=${encodeURIComponent('site:shufoo.net ' + name + ' ' + area)}`,
+        mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + area)}`,
+        detailSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(name + ' ' + area + ' チラシ 特売')}`
+    };
+}
+
+function parseResults(results, originLat, originLon, catKey) {
+    const seen = new Set();
+    const stores = [];
+    (results || []).forEach((item) => {
+        const name = item.name || (item.display_name ? item.display_name.split(',')[0].trim() : '');
+        if (!name) return;
+        const lat = parseFloat(item.lat), lon = parseFloat(item.lon);
+        if (Number.isNaN(lat) || Number.isNaN(lon)) return;
+        const key = `${name}|${lat.toFixed(4)}|${lon.toFixed(4)}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        const distanceKm = haversineKm(originLat, originLon, lat, lon);
+        stores.push({
+            id: `nom-${item.place_id}`,
+            name, cat: catKey,
+            categoryLabel: CATS[catKey].label,
+            distanceKm, lat, lon,
+            meta: `${CATS[catKey].label} ・ 約${distanceKm.toFixed(1)}km`,
+            mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat + ',' + lon)}`,
+            tokubaiUrl: `https://www.google.com/search?q=${encodeURIComponent('site:tokubai.co.jp ' + name + ' ' + currentLocation)}`,
+            shufooUrl: buildShufooChirashiUrl(lat, lon),
+            detailSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(name + ' ' + currentLocation + ' チラシ 特売')}`
+        });
+    });
+    stores.sort((a, b) => a.distanceKm - b.distanceKm);
+    return stores;
+}
+
+async function fetchCategory(cat, lat, lon) {
+    if (cat === 'marketplace') {
+        // 商店街は shop=marketplace のタグが付いていないことが多いので、名前に「商店街」を含む場所も探す
+        const [a, b] = await Promise.allSettled([
+            queryNominatim('[shop=marketplace]', lat, lon, 0.03, 10),
+            queryNominatim('商店街', lat, lon, 0.03, 10)
+        ]);
+        if (a.status === 'rejected' && b.status === 'rejected') throw a.reason;
+        const combined = [...(a.status === 'fulfilled' ? a.value : []), ...(b.status === 'fulfilled' ? b.value : [])];
+        return parseResults(combined, lat, lon, cat);
+    }
+    const results = await queryNominatim('[' + CATS[cat].tag + ']', lat, lon, 0.03, 30);
+    return parseResults(results, lat, lon, cat);
+}
+
+async function loadCategory(cat, force) {
+    if (!currentCoords) return;
+    const cur = catData[cat];
+    if (cur && !force && (cur.status === 'loading' || cur.status === 'done')) return;
+    const token = areaToken;
+    catData[cat] = { status: 'loading', stores: [] };
+    renderList();
+    try {
+        const stores = await fetchCategory(cat, currentCoords.lat, currentCoords.lon);
+        if (token !== areaToken) return;
+        catData[cat] = { status: 'done', stores };
+        if (cat === 'supermarket' && stores.length > 0 && !nameFilter) {
+            showToast(`${shortArea(currentLocation)}のスーパーが ${stores.length}件 見つかりました`);
         }
+    } catch (e) {
+        if (token !== areaToken) return;
+        console.error('お店の検索に失敗しました:', e);
+        catData[cat] = { status: 'error', stores: [] };
+    }
+    renderList();
+    renderMarkers();
+}
 
-        function toggleMemoDone(id) {
-            const item = shoppingMemo.find(m => m.id === id);
-            if (item) item.done = !item.done;
-            renderShoppingMemo();
-            updateMemoBadge();
+/* ============================================================
+   リストの表示
+   ============================================================ */
+function visibleStores() {
+    const e = catData[activeCat];
+    if (!e || e.status !== 'done') return [];
+    const q = nameFilter.toLowerCase();
+    return q ? e.stores.filter(s => s.name.toLowerCase().includes(q)) : e.stores;
+}
+
+function storeCardHtml(s) {
+    const isMarket = s.cat === 'marketplace';
+    return `
+    <div class="card">
+        <div class="card-head">
+            <div class="badge-ic">${ic('store', 24)}</div>
+            <div style="display:flex;flex-direction:column;min-width:0">
+                <span class="card-name">${escapeHtml(s.name)}</span>
+                <span class="card-meta">${escapeHtml(s.meta)}</span>
+            </div>
+        </div>
+        <div class="card-actions">
+            <button type="button" class="btn-main" data-act="open-store" data-id="${escapeHtml(s.id)}">
+                ${isMarket ? ic('search', 18) : ic('flyer', 18)}<span>${isMarket ? '詳しく調べる' : 'チラシを見る'}</span>
+            </button>
+            <button type="button" class="btn-map" data-act="show-on-map" data-id="${escapeHtml(s.id)}" aria-label="${escapeHtml(s.name)}を地図で見る">${ic('pin', 22)}</button>
+        </div>
+    </div>`;
+}
+
+function renderList() {
+    const box = $('store-list');
+    const e = catData[activeCat];
+    const label = CATS[activeCat].label;
+
+    document.querySelectorAll('#chips .chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cat === activeCat)));
+
+    if (!e || e.status === 'loading') {
+        box.innerHTML = `<div class="note"><div class="spinner"></div><span>${label}を探しています…</span></div>`;
+        return;
+    }
+    if (e.status === 'error') {
+        box.innerHTML = `<div class="note"><span>お店の一覧が、今回はうまく取れませんでした。</span><button type="button" class="btn-outline" data-act="retry">もう一度ためす</button></div>`;
+        return;
+    }
+    const list = visibleStores();
+    if (list.length === 0) {
+        if (nameFilter) {
+            box.innerHTML = `<div class="note"><span>「${escapeHtml(nameFilter)}」に合うお店が、この一覧にはありません。</span><button type="button" class="btn-outline" data-act="open-manual">名前でチラシを探す</button></div>`;
+        } else {
+            const extra = activeCat === 'marketplace' ? '地図データへの登録状況によって、表示できないことがあります。' : '上の「エリアを変える」から場所を変えてみてください。';
+            box.innerHTML = `<div class="note"><span>このあたりでは、${label}が地図データに見つかりませんでした。</span><span style="font-size:.8125rem">${extra}</span></div>`;
         }
+        return;
+    }
+    box.innerHTML = list.map(storeCardHtml).join('');
+}
 
-        function removeMemo(id) {
-            shoppingMemo = shoppingMemo.filter(m => m.id !== id);
-            renderShoppingMemo();
-            updateMemoBadge();
-        }
+function findStore(id) {
+    for (const k of Object.keys(catData)) {
+        const s = (catData[k].stores || []).find(x => x.id === id);
+        if (s) return s;
+    }
+    return null;
+}
 
-        function clearCompletedMemo() {
+/* ============================================================
+   お店のチラシ（下から出る画面）
+   ============================================================ */
+function manualStore(name) {
+    const links = buildNameLinks(name);
+    return { id: 'manual', name, cat: 'manual', categoryLabel: '名前で検索', meta: 'お店の名前から探します', ...links };
+}
+
+function openSheet(store) {
+    selectedId = store.id;
+    const isMarket = store.cat === 'marketplace';
+    const flyerIcon = ic('flyer', 20);
+    const body = isMarket
+        ? `<div style="display:flex;flex-direction:column;gap:8px">
+               <span class="sheet-label">商店街ぜんたいの特売日などは、自動では分かりません。検索で確かめられます。</span>
+               <div class="big-links"><a href="${store.detailSearchUrl}" target="_blank" rel="noopener">${ic('search', 20)}<span>詳しく調べる</span></a></div>
+           </div>
+           <div class="small-links"><a href="${store.mapUrl}" target="_blank" rel="noopener">地図アプリで開く</a></div>`
+        : `<div style="display:flex;flex-direction:column;gap:8px">
+               <span class="sheet-label">どちらで見ますか？</span>
+               <div class="big-links">
+                   <a href="${store.tokubaiUrl}" target="_blank" rel="noopener">${flyerIcon}<span>トクバイ</span></a>
+                   <a href="${store.shufooUrl}" target="_blank" rel="noopener">${flyerIcon}<span>Shufoo!</span></a>
+               </div>
+           </div>
+           <div class="small-links">
+               <a href="${store.mapUrl}" target="_blank" rel="noopener">地図アプリで開く</a>
+               <a href="${store.detailSearchUrl}" target="_blank" rel="noopener">まとめて検索</a>
+           </div>`;
+
+    $('store-sheet').innerHTML = `
+        <button type="button" class="grab" data-act="close-sheet" aria-label="とじる"><i></i></button>
+        <div class="card-head" style="margin-top:-10px">
+            <div class="badge-ic">${ic('store', 24)}</div>
+            <div style="display:flex;flex-direction:column;min-width:0;flex:1">
+                <span class="card-name" style="font-size:1.125rem">${escapeHtml(store.name)}</span>
+                <span class="card-meta">${escapeHtml(store.meta)}</span>
+            </div>
+            <button type="button" class="close-x" data-act="close-sheet" aria-label="とじる">${ic('close', 20, 'stroke-width:2.6')}</button>
+        </div>
+        ${body}`;
+
+    const bd = $('sheet-backdrop');
+    bd.classList.toggle('nodim', viewMode === 'map');
+    bd.classList.add('show');
+    $('store-sheet').classList.add('show');
+    $('store-sheet').scrollTop = 0;
+    updateMarkerStyles();
+}
+
+function closeSheet() {
+    selectedId = null;
+    $('sheet-backdrop').classList.remove('show');
+    $('store-sheet').classList.remove('show');
+    updateMarkerStyles();
+}
+
+/* ============================================================
+   地図
+   ============================================================ */
+function pinHtml(selected) {
+    return selected
+        ? `<svg width="48" height="60" viewBox="0 0 32 40" fill="none"><path d="M16 38C16 38 3 26 3 15a13 13 0 0 1 26 0c0 11-13 23-13 23z" fill="#0B6B3A" stroke="#FFFFFF" stroke-width="2"/><circle cx="16" cy="15" r="5" fill="#FFFFFF"/></svg>`
+        : `<svg width="32" height="40" viewBox="0 0 32 40" fill="none"><path d="M16 38C16 38 3 26 3 15a13 13 0 0 1 26 0c0 11-13 23-13 23z" fill="#FFFFFF" stroke="#0B6B3A" stroke-width="2.5"/><circle cx="16" cy="15" r="4.5" fill="#0B6B3A"/></svg>`;
+}
+function pinIcon(selected) {
+    return L.divIcon({
+        className: 'pin', html: pinHtml(selected),
+        iconSize: selected ? [48, 60] : [32, 40],
+        iconAnchor: selected ? [24, 57] : [16, 38]
+    });
+}
+
+function ensureMap() {
+    if (map || typeof L === 'undefined' || !currentCoords) return;
+    map = L.map('map', { zoomControl: false }).setView([currentCoords.lat, currentCoords.lon], 15);
+    map.attributionControl.setPrefix(false);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+    }).addTo(map);
+    map.on('click', handleMapTap);
+    map.on('moveend', () => {
+        const c = map.getCenter();
+        mapCenterCoords = { lat: c.lat, lon: c.lng };
+        updateHeroLink();
+    });
+}
+
+function renderMarkers() {
+    if (!map) return;
+    Object.values(markers).forEach(m => map.removeLayer(m));
+    markers = {};
+    visibleStores().forEach(s => {
+        const m = L.marker([s.lat, s.lon], { icon: pinIcon(s.id === selectedId), title: s.name, keyboard: true }).addTo(map);
+        m.on('click', () => openSheet(s));
+        markers[s.id] = m;
+    });
+}
+function updateMarkerStyles() {
+    Object.keys(markers).forEach(id => markers[id].setIcon(pinIcon(id === selectedId)));
+}
+
+async function handleMapTap(e) {
+    const { lat, lng } = e.latlng;
+    showToast('この場所を調べています…');
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&accept-language=ja`);
+        if (!res.ok) throw new Error('reverse failed');
+        const d = await res.json();
+        const name = d?.name || '';
+        if (!name) { showToast('ここでは名前が分かりませんでした。お店のピンの近くをタップしてみてください'); return; }
+        openSheet(manualStore(name));
+    } catch (err) {
+        showToast('調べるのに失敗しました。もう一度タップしてみてください');
+    }
+}
+
+function showOnMap(store) {
+    viewMode = 'map';
+    activeTab = 'search';
+    showTab('search');
+    ensureMap();
+    if (map) {
+        map.setView([store.lat, store.lon], 17);
+        setTimeout(() => { map.invalidateSize(); renderMarkers(); }, 80);
+    }
+    setTimeout(() => openSheet(store), 120);
+}
+
+/* ============================================================
+   お店の名前で探す
+   ============================================================ */
+function runNameSearch(q) {
+    q = q.trim();
+    nameFilter = q;
+    $('q-list').value = q;
+    $('q-map').value = q;
+    renderList();
+    renderMarkers();
+    if (!q) return;
+    const hits = visibleStores();
+    if (hits.length === 0) {
+        openSheet(manualStore(q));
+    } else if (viewMode === 'map' && map) {
+        map.setView([hits[0].lat, hits[0].lon], 16);
+        openSheet(hits[0]);
+    }
+}
+
+/* ============================================================
+   エリアを変える画面
+   ============================================================ */
+function openArea() {
+    closeSheet();
+    $('area-input').value = '';
+    $('area-backdrop').classList.add('show');
+    $('area-sheet').classList.add('show');
+}
+function closeArea() {
+    $('area-backdrop').classList.remove('show');
+    $('area-sheet').classList.remove('show');
+}
+
+/* ============================================================
+   買い物メモ
+   ============================================================ */
+function saveShopping() { saveJson(KEYS.shopping, shoppingMemo); }
+function savePrice() { saveJson(KEYS.price, priceMemo); }
+
+function renderShopping() {
+    const list = $('memo-list');
+    if (shoppingMemo.length === 0) {
+        list.innerHTML = `<li><div class="empty-line">まだ何も入っていません。上の欄から足してください</div></li>`;
+    } else {
+        list.innerHTML = shoppingMemo.map(m => `
+            <li><label>
+                <input type="checkbox" data-memo-id="${m.id}" ${m.done ? 'checked' : ''}>
+                <span class="t ${m.done ? 'done' : ''}">${escapeHtml(m.text)}</span>
+            </label></li>`).join('');
+    }
+    const remaining = shoppingMemo.filter(m => !m.done).length;
+    $('remain-badge').textContent = remaining;
+    $('remain-text').textContent = remaining;
+}
+
+function setMemoTab(tab) {
+    memoTab = tab;
+    $('memo-buy').style.display = tab === 'buy' ? 'flex' : 'none';
+    $('memo-price').style.display = tab === 'price' ? 'flex' : 'none';
+    $('seg-buy').setAttribute('aria-pressed', String(tab === 'buy'));
+    $('seg-price').setAttribute('aria-pressed', String(tab === 'price'));
+}
+
+function renderPrice() {
+    const list = $('price-list');
+    if (priceMemo.length === 0) {
+        list.innerHTML = `<li style="justify-content:center"><span class="empty-line" style="padding:6px 0">まだ記録がありません</span></li>`;
+        return;
+    }
+    const lowest = {};
+    priceMemo.forEach(p => { if (!(p.name in lowest) || p.price < lowest[p.name]) lowest[p.name] = p.price; });
+    const sorted = [...priceMemo].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
+    list.innerHTML = sorted.map(p => {
+        const [, mo, da] = String(p.date).split('-');
+        const dateText = mo && da ? `${parseInt(mo, 10)}月${parseInt(da, 10)}日` : escapeHtml(p.date);
+        const cheapest = p.price === lowest[p.name] && priceMemo.filter(x => x.name === p.name).length > 1;
+        return `<li>
+            <div style="display:flex;flex-direction:column;min-width:0">
+                <span class="nm">${escapeHtml(p.name)}</span>
+                <span class="sub">${escapeHtml(p.store)} ・ ${dateText}${p.note ? ' ・ ' + escapeHtml(p.note) : ''}</span>
+            </div>
+            <div class="right">
+                ${cheapest ? '<span class="cheap">いちばん安い</span>' : ''}
+                <span class="yen">${p.price.toLocaleString()}円</span>
+                <button type="button" class="del-btn" data-act="del-price" data-id="${p.id}" aria-label="${escapeHtml(p.name)}の記録を消す">${ic('trash', 20)}</button>
+            </div>
+        </li>`;
+    }).join('');
+}
+
+/* ============================================================
+   見やすさ・共有
+   ============================================================ */
+function applyLarge() {
+    document.documentElement.classList.toggle('large', largeText);
+    $('switch-large').setAttribute('aria-checked', String(largeText));
+    if (map) setTimeout(() => map.invalidateSize(), 50);
+}
+function appUrl() { return window.location.href.split('#')[0]; }
+function shareToLine(text) { window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`, '_blank'); }
+function shareAppText() { return `【トク得チラシ】近くのスーパーの本物チラシが見られるアプリです\n${appUrl()}`; }
+function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+    return new Promise((resolve, reject) => {
+        const t = document.createElement('textarea');
+        t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+        document.body.appendChild(t); t.select();
+        try { document.execCommand('copy') ? resolve() : reject(); } catch (e) { reject(e); }
+        document.body.removeChild(t);
+    });
+}
+
+/* ============================================================
+   ホーム画面アイコン（iPhone用の画像を、緑の背景＋買い物かごで作る）
+   ============================================================ */
+function makeAppIcon() {
+    try {
+        const c = document.createElement('canvas');
+        c.width = c.height = 180;
+        const g = c.getContext('2d');
+        g.fillStyle = '#0B6B3A';
+        g.fillRect(0, 0, 180, 180);
+        g.save();
+        g.translate(30, 30);
+        g.scale(5, 5);
+        g.strokeStyle = '#FFFFFF'; g.lineWidth = 1.8; g.lineCap = 'round'; g.lineJoin = 'round';
+        g.stroke(new Path2D('M4 9h16l-1.6 9a2 2 0 0 1-2 1.6H7.6a2 2 0 0 1-2-1.6L4 9z'));
+        g.stroke(new Path2D('M8 9l3-5M16 9l-3-5'));
+        g.restore();
+        $('app-icon-apple').href = c.toDataURL('image/png');
+    } catch (e) { /* 作れない環境では、はじめから入っている絵を使う */ }
+}
+
+/* ============================================================
+   操作のつなぎ込み
+   ============================================================ */
+document.addEventListener('click', (ev) => {
+    const el = ev.target.closest('[data-act]');
+    if (!el) return;
+    const act = el.dataset.act;
+    switch (act) {
+        case 'open-area': openArea(); break;
+        case 'close-area': closeArea(); break;
+        case 'use-gps': useGPSLocation(); break;
+        case 'mode-list': setViewMode('list'); break;
+        case 'mode-map': setViewMode('map'); break;
+        case 'open-store': { const s = findStore(el.dataset.id); if (s) openSheet(s); break; }
+        case 'show-on-map': { const s = findStore(el.dataset.id); if (s) showOnMap(s); break; }
+        case 'close-sheet': closeSheet(); break;
+        case 'retry': loadCategory(activeCat, true); break;
+        case 'open-manual': openSheet(manualStore(nameFilter)); break;
+        case 'clear-done':
             shoppingMemo = shoppingMemo.filter(m => !m.done);
-            renderShoppingMemo();
-            updateMemoBadge();
-            showToast("チェック済み項目を削除しました", "fa-trash");
+            saveShopping(); renderShopping();
+            showToast('チェック済みを消しました');
+            break;
+        case 'memo-tab-buy': setMemoTab('buy'); break;
+        case 'memo-tab-price': setMemoTab('price'); break;
+        case 'del-price':
+            priceMemo = priceMemo.filter(p => String(p.id) !== el.dataset.id);
+            savePrice(); renderPrice();
+            break;
+        case 'share-memo': {
+            if (shoppingMemo.length === 0) { showToast('買うものがまだ入っていません'); break; }
+            let text = `【買い物メモ（${shortArea(currentLocation)}）】\n`;
+            shoppingMemo.forEach(m => { text += `${m.done ? '✓' : '・'} ${m.text}\n`; });
+            shareToLine(text + '\n#トク得チラシ');
+            break;
         }
-
-        function updateMemoBadge() {
-            const badge = document.getElementById('memo-badge');
-            if (!badge) return;
-            const activeCount = shoppingMemo.filter(m => !m.done).length;
-            if (activeCount > 0) {
-                badge.innerText = activeCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        // ---------- 最安値メモ ----------
-
-        function loadPriceMemo() {
-            try {
-                const raw = localStorage.getItem('tokuTokuChirashi_priceMemo');
-                priceMemo = raw ? JSON.parse(raw) : [];
-            } catch (e) {
-                priceMemo = [];
-            }
-        }
-
-        function savePriceMemo() {
-            try {
-                localStorage.setItem('tokuTokuChirashi_priceMemo', JSON.stringify(priceMemo));
-            } catch (e) {
-                // 保存できない環境（プライベートブラウズ等）では画面上のメモのみで動作させる
-            }
-        }
-
-        function resetPriceMemoDateToToday() {
-            const dateInput = document.getElementById('price-memo-date');
-            if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
-        }
-
-        function addPriceMemo() {
-            const nameInput = document.getElementById('price-memo-name');
-            const priceInput = document.getElementById('price-memo-price');
-            const storeInput = document.getElementById('price-memo-store');
-            const dateInput = document.getElementById('price-memo-date');
-            const noteInput = document.getElementById('price-memo-note');
-
-            const name = nameInput ? nameInput.value.trim() : '';
-            const store = storeInput ? storeInput.value.trim() : '';
-            const price = priceInput ? parseInt(priceInput.value, 10) : NaN;
-
-            if (!name || !store || Number.isNaN(price) || price < 0) {
-                showToast("品名・価格・お店の名前を入力してください", "fa-circle-exclamation");
-                return;
-            }
-
-            priceMemo.push({
-                id: Date.now(),
-                name, store, price,
-                date: (dateInput && dateInput.value) || new Date().toISOString().slice(0, 10),
-                note: noteInput ? noteInput.value.trim() : ''
-            });
-
-            if (nameInput) nameInput.value = '';
-            if (priceInput) priceInput.value = '';
-            if (storeInput) storeInput.value = '';
-            if (noteInput) noteInput.value = '';
-            resetPriceMemoDateToToday();
-
-            savePriceMemo();
-            renderPriceMemo();
-            showToast("最安値メモに記録しました", "fa-check");
-        }
-
-        function removePriceMemo(id) {
-            priceMemo = priceMemo.filter(p => p.id !== id);
-            savePriceMemo();
-            renderPriceMemo();
-        }
-
-        function renderPriceMemo() {
-            const list = document.getElementById('price-memo-list');
-            if (!list) return;
-
-            if (priceMemo.length === 0) {
-                list.innerHTML = `<li class="text-xs text-gray-400 text-center py-4">まだ記録がありません</li>`;
-                return;
-            }
-
-            const lowestByName = {};
-            priceMemo.forEach(p => {
-                if (!(p.name in lowestByName) || p.price < lowestByName[p.name]) {
-                    lowestByName[p.name] = p.price;
-                }
-            });
-
-            const sorted = [...priceMemo].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
-
-            list.innerHTML = sorted.map(p => `
-                <li class="p-2.5 rounded-xl bg-gray-50 space-y-1">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-gray-800">${escapeHtml(p.name)}</span>
-                        <div class="flex items-center gap-1.5">
-                            ${p.price === lowestByName[p.name] ? '<span class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full">最安</span>' : ''}
-                            <span class="text-xs font-bold text-brand-700">${p.price.toLocaleString()}円</span>
-                            <button onclick="removePriceMemo(${p.id})" class="text-gray-300 hover:text-red-500 text-xs p-1 transition">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <p class="text-sm font-bold text-slate-700 flex items-center gap-1"><i class="fa-solid fa-shop text-slate-400 text-xs"></i>${escapeHtml(p.store)}</p>
-                    <p class="text-[11px] text-gray-400">${escapeHtml(p.date)}${p.note ? ' ・ ' + escapeHtml(p.note) : ''}</p>
-                </li>
-            `).join('');
-        }
-
-        // ---------- 表示設定（文字を大きく表示） ----------
-
-        function loadTextSizePref() {
-            try {
-                largeTextEnabled = localStorage.getItem('tokuTokuChirashi_largeText') === '1';
-            } catch (e) {
-                largeTextEnabled = false;
-            }
-            applyTextSizePref();
-        }
-
-        function applyTextSizePref() {
-            document.body.classList.toggle('large-text', largeTextEnabled);
-            const btn = document.getElementById('large-text-toggle-btn');
-            const knob = document.getElementById('large-text-toggle-knob');
-            if (btn) {
-                btn.classList.toggle('bg-brand-600', largeTextEnabled);
-                btn.classList.toggle('bg-gray-200', !largeTextEnabled);
-            }
-            if (knob) knob.classList.toggle('translate-x-6', largeTextEnabled);
-        }
-
-        function toggleLargeText() {
-            largeTextEnabled = !largeTextEnabled;
-            try {
-                localStorage.setItem('tokuTokuChirashi_largeText', largeTextEnabled ? '1' : '0');
-            } catch (e) {
-                // 保存できない環境では今回の表示中のみ有効にする
-            }
-            applyTextSizePref();
-        }
-
-        // ---------- 共有機能 ----------
-
-        function shareToLine(text) {
-            window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`, '_blank');
-        }
-
-        function shareMemoToLine() {
-            if (shoppingMemo.length === 0) {
-                showToast("買い物メモが空です", "fa-circle-exclamation");
-                return;
-            }
-            let text = `【買い物メモ（${currentLocation}）】\n`;
-            shoppingMemo.forEach(m => { text += `${m.done ? "✓" : "・"} ${m.text}\n`; });
-            shareToLine(text + "\n#トク得チラシ");
-        }
-
-        function openShareAppModal() {
-            const modal = document.getElementById('share-app-modal');
-            const card = document.getElementById('share-app-modal-card');
-            const qrImg = document.getElementById('app-qr-code');
-            if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(window.location.href)}`;
-            if (modal && card) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                card.classList.remove('scale-95');
-                card.classList.add('scale-100');
-            }
-        }
-
-        function closeShareAppModal() {
-            const modal = document.getElementById('share-app-modal');
-            const card = document.getElementById('share-app-modal-card');
-            if (modal && card) {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                card.classList.remove('scale-100');
-                card.classList.add('scale-95');
-            }
-        }
-
-        function shareAppToLine() {
-            shareToLine(`【トク得チラシ】近隣の実在スーパー・本物チラシ検索アプリ🛒✨\n${window.location.href}`);
-        }
-
-        function copyAppUrl() {
-            const temp = document.createElement('input');
-            temp.value = window.location.href;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-            showToast("アプリURLをコピーしました！", "fa-copy");
-        }
-
-        async function nativeShareApp() {
+        case 'share-line': shareToLine(shareAppText()); break;
+        case 'share-native':
             if (navigator.share) {
-                try {
-                    await navigator.share({ title: 'トク得チラシ', text: '実在スーパー・本物チラシ検索アプリ', url: window.location.href });
-                } catch (e) {}
+                navigator.share({ title: 'トク得チラシ', text: '近くのスーパーの本物チラシが見られるアプリ', url: appUrl() }).catch(() => {});
             } else {
-                copyAppUrl();
+                copyText(appUrl()).then(() => showToast('リンクをコピーしました')).catch(() => showToast('コピーできませんでした'));
             }
-        }
+            break;
+        case 'share-copy':
+            copyText(appUrl()).then(() => showToast('リンクをコピーしました')).catch(() => showToast('コピーできませんでした'));
+            break;
+    }
+});
 
-        // ---------- タブ・モーダル制御 ----------
+document.querySelectorAll('#nav a').forEach(a => {
+    a.addEventListener('click', (ev) => { ev.preventDefault(); showTab(a.dataset.tab); });
+});
 
-        function switchTab(tabName) {
-            activeTab = tabName;
-            ['home', 'flyers', 'compare', 'memo', 'stores'].forEach(t => {
-                const view = document.getElementById(`view-${t}`);
-                const nav = document.getElementById(`nav-${t}`);
-                if (view) view.classList.toggle('hidden', t !== tabName);
-                if (nav) {
-                    nav.classList.toggle('text-brand-600', t === tabName);
-                    nav.classList.toggle('tab-active', t === tabName);
-                    nav.classList.toggle('text-gray-400', t !== tabName);
-                }
-            });
+$('chips').addEventListener('click', (ev) => {
+    const b = ev.target.closest('.chip');
+    if (!b) return;
+    activeCat = b.dataset.cat;
+    selectedId = null;
+    renderList();
+    renderMarkers();
+    loadCategory(activeCat, false);
+});
 
-            if (tabName === 'home' && leafletMap) {
-                setTimeout(() => leafletMap.invalidateSize(), 100);
-            }
-        }
+$('form-list').addEventListener('submit', (ev) => { ev.preventDefault(); runNameSearch($('q-list').value); });
+$('form-map').addEventListener('submit', (ev) => { ev.preventDefault(); runNameSearch($('q-map').value); });
+['q-list', 'q-map'].forEach(id => {
+    $(id).addEventListener('input', () => {
+        const v = $(id).value.trim();
+        if (v === '' && nameFilter !== '') runNameSearch('');
+    });
+});
 
-        function openLocationModal() {
-            const modal = document.getElementById('location-modal');
-            const card = document.getElementById('location-modal-card');
-            if (modal && card) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                card.classList.remove('scale-95');
-                card.classList.add('scale-100');
-            }
-        }
+$('form-area').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const v = $('area-input').value.trim();
+    if (!v) { showToast('市区町村の名前を入れてください'); return; }
+    closeArea();
+    await resolveAreaByAddressText(v);
+});
 
-        function closeLocationModal() {
-            const modal = document.getElementById('location-modal');
-            const card = document.getElementById('location-modal-card');
-            if (modal && card) {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                card.classList.remove('scale-100');
-                card.classList.add('scale-95');
-            }
-        }
+$('form-memo').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const input = $('memo-input');
+    const v = input.value.trim();
+    if (!v) return;
+    shoppingMemo.push({ id: Date.now(), text: v, done: false });
+    input.value = '';
+    saveShopping(); renderShopping();
+});
+$('memo-list').addEventListener('change', (ev) => {
+    const cb = ev.target.closest('input[data-memo-id]');
+    if (!cb) return;
+    const item = shoppingMemo.find(m => String(m.id) === cb.dataset.memoId);
+    if (item) item.done = cb.checked;
+    saveShopping(); renderShopping();
+});
 
-        function showLoading(show, title = "", sub = "") {
-            const overlay = document.getElementById('ai-loading-overlay');
-            const titleElem = document.getElementById('loading-title');
-            const subElem = document.getElementById('loading-sub');
+$('form-price').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const name = $('pn').value.trim(), store = $('ps').value.trim();
+    const price = parseInt($('pp').value, 10);
+    if (!name || !store || Number.isNaN(price) || price < 0) {
+        showToast('品名・値段・お店を入れてください');
+        return;
+    }
+    priceMemo.push({ id: Date.now(), name, store, price, date: $('pd').value || localDateStr(), note: $('pm').value.trim() });
+    ['pn', 'pp', 'ps', 'pm'].forEach(id => { $(id).value = ''; });
+    $('pd').value = localDateStr();
+    savePrice(); renderPrice();
+    showToast('記録しました');
+});
 
-            if (titleElem && title) titleElem.innerText = title;
-            if (subElem && sub) subElem.innerText = sub;
+$('switch-large').addEventListener('click', () => {
+    largeText = !largeText;
+    try { localStorage.setItem(KEYS.large, largeText ? '1' : '0'); } catch (e) { /* 保存できない環境では今回のみ */ }
+    applyLarge();
+});
 
-            if (overlay) overlay.classList.toggle('hidden', !show);
-        }
+document.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Escape') return;
+    closeArea();
+    closeSheet();
+});
 
-        function showToast(msg, icon = "fa-circle-info") {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-msg');
-            const toastIcon = document.getElementById('toast-icon');
+/* ============================================================
+   起動
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', async () => {
+    try { largeText = localStorage.getItem(KEYS.large) === '1'; } catch (e) { largeText = false; }
+    applyLarge();
+    makeAppIcon();
+    $('pd').value = localDateStr();
+    renderShopping();
+    renderPrice();
+    renderList();
+    updateAreaUI();
 
-            if (toastMsg) toastMsg.innerText = msg;
-            if (toastIcon) toastIcon.className = `fa-solid ${icon} text-brand-400`;
-
-            if (toast) {
-                toast.classList.remove('-translate-y-10', 'opacity-0', 'pointer-events-none');
-                toast.classList.add('translate-y-0', 'opacity-100');
-
-                setTimeout(() => {
-                    toast.classList.remove('translate-y-0', 'opacity-100');
-                    toast.classList.add('-translate-y-10', 'opacity-0', 'pointer-events-none');
-                }, 3000);
-            }
-        }
-    </script>
+    const saved = loadJson(KEYS.area, null);
+    if (saved && typeof saved.lat === 'number' && typeof saved.lon === 'number' && saved.name) {
+        setArea(saved.name, saved.lat, saved.lon);
+    } else {
+        await resolveAreaByAddressText(DEFAULT_AREA);
+    }
+});
+</script>
 </body>
 </html>
