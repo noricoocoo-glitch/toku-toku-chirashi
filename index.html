@@ -43,7 +43,9 @@
 
         /* 共通の部品 */
         .area-btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 12px; border-radius: 22px; background: #fff; border: 1px solid #D9E0D8; font-size: .9375rem; font-weight: 700; color: #17261E; max-width: 190px; }
-        .area-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .area-btn .area-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; min-width: 0; padding: 3px 0; }
+        .area-btn small { font-size: .8125rem; font-weight: 500; color: #55655B; white-space: nowrap; }
+        .area-btn b { font-size: .9375rem; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .searchbox { display: flex; align-items: center; gap: 8px; min-height: 54px; padding: 0 7px 0 14px; border-radius: 16px; background: #fff; border: 1px solid #D9E0D8; }
         .searchbox input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 1rem; color: #17261E; min-height: 44px; }
         .searchbox button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #0B6B3A; color: #fff; font-size: .9375rem; font-weight: 700; }
@@ -234,7 +236,7 @@
                     </div>
                     <button type="button" class="area-btn" data-act="open-area" id="area-btn-list">
                         <svg class="ic" width="18" height="18" style="color:#0B6B3A"><use href="#i-pin"/></svg>
-                        <span class="area-label">江東区</span>
+                        <span class="area-text"><small>場所を変える</small><b class="area-label">江東区</b></span>
                         <svg class="ic" width="16" height="16" style="color:#55655B"><use href="#i-down"/></svg>
                     </button>
                 </div>
@@ -293,7 +295,7 @@
                 <div class="row">
                     <button type="button" class="area-btn" data-act="open-area" id="area-btn-map">
                         <svg class="ic" width="18" height="18" style="color:#0B6B3A"><use href="#i-pin"/></svg>
-                        <span class="area-label">江東区</span>
+                        <span class="area-text"><small>場所を変える</small><b class="area-label">江東区</b></span>
                         <svg class="ic" width="16" height="16" style="color:#55655B"><use href="#i-down"/></svg>
                     </button>
                     <div class="seg">
@@ -416,11 +418,11 @@
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-top:-10px">
             <div style="display:flex;flex-direction:column">
                 <h1 style="margin:0;font-size:1.375rem;font-weight:800">エリアを変える</h1>
-                <span style="font-size:.875rem;color:#55655B">近くのお店を探す場所を選びます</span>
+                <span style="font-size:.875rem;color:#55655B">いまは「<span id="area-now">江東区</span>」で探しています</span>
             </div>
             <button type="button" class="close-x" data-act="close-area" aria-label="とじる"><svg class="ic" width="20" height="20" style="stroke-width:2.6"><use href="#i-close"/></svg></button>
         </div>
-        <button type="button" class="area-btn-big" data-act="use-gps"><svg class="ic" width="24" height="24"><use href="#i-gps"/></svg><span>いまいる場所を使う</span></button>
+        <button type="button" class="area-btn-big" data-act="use-gps"><svg class="ic" width="24" height="24"><use href="#i-gps"/></svg><span>いまいる場所（現在地）で探す</span></button>
         <div class="or" aria-hidden="true"><i></i><span>または</span><i></i></div>
         <form id="form-area" style="display:flex;flex-direction:column;gap:10px">
             <label for="area-input" style="font-size:.875rem;font-weight:700;color:#55655B">市区町村の名前を入れる</label>
@@ -594,6 +596,7 @@ function updateAreaUI() {
     document.querySelectorAll('.area-label').forEach(el => { el.textContent = short; });
     document.querySelectorAll('.area-btn').forEach(el => el.setAttribute('aria-label', `エリアを変える。いまは${short}`));
     $('settings-area').textContent = currentLocation;
+    $('area-now').textContent = short;
     $('hero-sub').textContent = `${short}のスーパーのチラシが、一覧で開きます`;
     updateHeroLink();
 }
